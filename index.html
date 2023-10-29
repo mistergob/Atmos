@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+        }
+        #button-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .cercle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px solid black;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+        }
+        .menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #fff;
+            border: 1px solid black;
+        }
+        .option {
+            padding: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="button-container">
+        <button id="btn1">Button 1</button>
+        <button id="btn2">Button 2</button>
+        <button id="btn3">Button 3</button>
+        <button id="btn4">Button 4</button>
+    </div>
+
+    <script>
+        let cercleCount = 0;
+
+        function setupCercle(cercle, menu, ouvrir, deplacer) {
+            let isDragging = false;
+
+            cercle.addEventListener('click', function(event) {
+                menu.style.display = 'block';
+            });
+
+            ouvrir.addEventListener('click', function() {
+                window.location.href = "https://mistergob.github.io/atmos/";
+            });
+
+            deplacer.addEventListener('mousedown', function() {
+                isDragging = true;
+                menu.style.display = 'none';
+            });
+
+            document.addEventListener('mousemove', function(event) {
+                if (isDragging) {
+                    cercle.style.left = event.clientX - cercle.offsetWidth / 2 + 'px';
+                    cercle.style.top = event.clientY - cercle.offsetHeight / 2 + 'px';
+                }
+            });
+
+            cercle.addEventListener('click', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    menu.style.display = 'none';
+                }
+            });
+
+            document.addEventListener('click', function(event) {
+                let isClickInsideCercle = cercle.contains(event.target);
+                let isClickInsideMenu = menu.contains(event.target);
+
+                if (!isClickInsideCercle && !isClickInsideMenu) {
+                    menu.style.display = 'none';
+                }
+            });
+        }
+
+        document.getElementById('btn1').addEventListener('click', function() {
+            cercleCount++;
+            const cercle = document.createElement('div');
+            const menu = document.createElement('div');
+            const ouvrir = document.createElement('div');
+            const deplacer = document.createElement('div');
+            const span = document.createElement('span');
+
+            cercle.className = 'cercle';
+            menu.className = 'menu';
+            ouvrir.className = 'option';
+            deplacer.className = 'option';
+            span.textContent = `Center${cercleCount}`;
+            ouvrir.textContent = 'Ouvrir';
+            deplacer.textContent = 'Déplacer';
+
+            cercle.appendChild(span);
+            cercle.appendChild(menu);
+            menu.appendChild(ouvrir);
+            menu.appendChild(deplacer);
+
+            document.body.appendChild(cercle);
+
+            setupCercle(cercle, menu, ouvrir, deplacer);
+        });
+    </script>
+</body>
+</html>
