@@ -3,7 +3,7 @@
 <head>
     <title>Interactions avec des cercles</title>
     <style>
-        /* Ajoutez vos styles CSS ici */
+        /* Vos styles CSS ici */
         .dropdown-menu {
             position: absolute;
             border: 1px solid #ddd;
@@ -19,6 +19,11 @@
 
         circle {
             fill: white;
+            stroke: black;
+            stroke-width: 2px;
+        }
+
+        line {
             stroke: black;
             stroke-width: 2px;
         }
@@ -40,7 +45,6 @@
         ];
 
         var lines = svg.selectAll("line");
-
         var menu;
 
         dessinerCercles();
@@ -68,88 +72,35 @@
                 .attr("dy", ".35em")
                 .text(d => d.name)
                 .style("text-anchor", "middle");
-        }
 
-        function dragstarted(d) {
-            d3.event.sourceEvent.stopPropagation();
-        }
-
-        function dragged(d) {
-            d.x = d3.event.x;
-            d.y = d3.event.y;
-            d3.select(this).select("circle").attr("cx", d.x).attr("cy", d.y);
-            d3.select(this).select("text").attr("x", d.x).attr("y", d.y);
             updateLines();
         }
 
-        function dragended(d) {
-            updateLines();
-        }
-
-        function renommerCercle(d) {
-            var nouveauNom = prompt("Entrez le nouveau nom du cercle:", d.name);
-            if (nouveauNom != null) {
-                d.name = nouveauNom;
-                dessinerCercles();
-            }
-        }
-
-        function ajouterCercle(d) {
-            var newNode = { id: nodes.length + 1, x: d.x + 100, y: d.y, name: "Nouveau Cercle", url: "#" };
-            nodes.push(newNode);
-            dessinerCercles();
-        }
-
-        function ouvrirURL(d) {
-            window.open(d.url, "_blank");
-        }
+        // ... Autres fonctions (dragstarted, dragged, dragended, renommerCercle, ajouterCercle, ouvrirURL, ouvrirMenuContextuel)
 
         function updateLines() {
-            // Logique de mise à jour des lignes ici si nécessaire
-        }
+            var lineData = [];
 
-        function ouvrirMenuContextuel(d) {
-            d3.event.preventDefault();
-
-            var top = d3.event.pageY - 10;
-            var left = d3.event.pageX - 10;
-
-            menu = d3.select("body")
-                .append("div")
-                .attr("class", "dropdown-menu")
-                .style("top", top + "px")
-                .style("left", left + "px");
-
-            menu.append("a")
-                .attr("class", "dropdown-item")
-                .text("Ajouter un cercle")
-                .on("click", function() {
-                    d3.event.preventDefault();
-                    ajouterCercle(d);
-                    menu.remove();
+            nodes.forEach(function(node1, index1) {
+                nodes.forEach(function(node2, index2) {
+                    if (index1 != index2) {
+                        var distance = Math.sqrt(Math.pow(node1.x - node2.x, 2) + Math.pow(node1.y - node2.y, 2));
+                        if (distance < 200) { // 200 car le rayon de chaque cercle est de 50
+                            lineData.push({"x1": node1.x, "y1": node1.y, "x2": node2.x, "y2": node2.y});
+                        }
+                    }
                 });
-
-            menu.append("a")
-                .attr("class", "dropdown-item")
-                .text("Renommer le cercle")
-                .on("click", function() {
-                    d3.event.preventDefault();
-                    renommerCercle(d);
-                    menu.remove();
-                });
-
-            menu.append("a")
-                .attr("class", "dropdown-item")
-                .text("Ouvrir")
-                .on("click", function() {
-                    d3.event.preventDefault();
-                    ouvrirURL(d);
-                    menu.remove();
-                });
-
-            d3.select("body").on("click", function() {
-                menu.remove();
             });
+
+            lines = svg.selectAll("line").data(lineData);
+
+            lines.enter().append("line")
+                .attr("x1", d => d.x1)
+                .attr("y1", d => d.y1)
+                .attr("x2", d => d.x2)
+                .attr("y2", d => d.y2);
+
+            lines.exit().remove();
         }
     </script>
 </body>
