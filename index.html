@@ -1,127 +1,48 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            position: relative;
-        }
-        #button-container {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            display: flex;
-            flex-direction: column;
-        }
-        .cercle {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 2px solid black;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-        }
-        .menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: #fff;
-            border: 1px solid black;
-        }
-        .option {
-            padding: 5px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <div id="button-container">
-        <button id="btn1">Button 1</button>
-        <button id="btn2">Button 2</button>
-        <button id="btn3">Button 3</button>
-        <button id="btn4">Button 4</button>
-    </div>
+var width = window.innerWidth,
+    height = window.innerHeight;
 
-    <script>
-        let cercleCount = 0;
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
 
-        function setupCercle(cercle, menu, ouvrir, deplacer) {
-            let isDragging = false;
+var nodes = [
+ {id: 1, x: 200, y: 200},
+ {id: 2, x: 300, y: 200},
+ // Ajoutez d'autres noeuds ici
+];
 
-            cercle.addEventListener('click', function(event) {
-                menu.style.display = 'block';
-            });
+var circles = svg.selectAll("circle")
+    .data(nodes)
+    .enter().append("circle")
+    .attr("r", 50)
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; })
+    .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
 
-            ouvrir.addEventListener('click', function() {
-                window.location.href = "https://mistergob.github.io/atmos/";
-            });
+function dragstarted(d) {
+ d3.event.sourceEvent.stopPropagation();
+}
 
-            deplacer.addEventListener('mousedown', function() {
-                isDragging = true;
-                menu.style.display = 'none';
-            });
+function dragged(d) {
+ d3.select(this)
+      .attr("cx", d.x = d3.event.x)
+      .attr("cy", d.y = d3.event.y);
 
-            document.addEventListener('mousemove', function(event) {
-                if (isDragging) {
-                    cercle.style.left = event.clientX - cercle.offsetWidth / 2 + 'px';
-                    cercle.style.top = event.clientY - cercle.offsetHeight / 2 + 'px';
-                }
-            });
+ updateLines();
+}
 
-            cercle.addEventListener('click', function() {
-                if (isDragging) {
-                    isDragging = false;
-                    menu.style.display = 'none';
-                }
-            });
+function dragended(d) {
+ updateLines();
+}
 
-            document.addEventListener('click', function(event) {
-                let isClickInsideCercle = cercle.contains(event.target);
-                let isClickInsideMenu = menu.contains(event.target);
+var lines = svg.selectAll("line");
 
-                if (!isClickInsideCercle && !isClickInsideMenu) {
-                    menu.style.display = 'none';
-                }
-            });
-        }
+function updateLines() {
+ var lineData = [];
 
-        document.getElementById('btn1').addEventListener('click', function() {
-            cercleCount++;
-            const cercle = document.createElement('div');
-            const menu = document.createElement('div');
-            const ouvrir = document.createElement('div');
-            const deplacer = document.createElement('div');
-            const span = document.createElement('span');
-
-            cercle.className = 'cercle';
-            menu.className = 'menu';
-            ouvrir.className = 'option';
-            deplacer.className = 'option';
-            span.textContent = `Center${cercleCount}`;
-            ouvrir.textContent = 'Ouvrir';
-            deplacer.textContent = 'Déplacer';
-
-            cercle.appendChild(span);
-            cercle.appendChild(menu);
-            menu.appendChild(ouvrir);
-            menu.appendChild(deplacer);
-
-            document.body.appendChild(cercle);
-
-            setupCercle(cercle, menu, ouvrir, deplacer);
-        });
-    </script>
-</body>
-</html>
+ nodes.forEach(function(node1, index1) {
+    nodes.forEach(function(node2, index2) {
+      if (index1 != index2 && Math.abs(node1.x - node2.x) < 100 && Math.abs(node1.y - node2.y) < 100)
