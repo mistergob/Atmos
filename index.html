@@ -3,7 +3,7 @@
 <head>
     <title>Interactions avec des cercles</title>
     <style>
-        /* Vos styles CSS ici */
+        /* Styles CSS */
         .dropdown-menu {
             position: absolute;
             border: 1px solid #ddd;
@@ -44,7 +44,6 @@
             // Ajoutez d'autres nœuds initiaux ici si nécessaire
         ];
 
-        var lines = svg.selectAll("line");
         var menu;
 
         dessinerCercles();
@@ -76,7 +75,39 @@
             updateLines();
         }
 
-        // ... Autres fonctions (dragstarted, dragged, dragended, renommerCercle, ajouterCercle, ouvrirURL, ouvrirMenuContextuel)
+        function dragstarted(d) {
+            d3.event.sourceEvent.stopPropagation();
+        }
+
+        function dragged(d) {
+            d.x = d3.event.x;
+            d.y = d3.event.y;
+            d3.select(this).select("circle").attr("cx", d.x).attr("cy", d.y);
+            d3.select(this).select("text").attr("x", d.x).attr("y", d.y);
+            updateLines();
+        }
+
+        function dragended(d) {
+            updateLines();
+        }
+
+        function renommerCercle(d) {
+            var nouveauNom = prompt("Entrez le nouveau nom du cercle:", d.name);
+            if (nouveauNom != null) {
+                d.name = nouveauNom;
+                dessinerCercles();
+            }
+        }
+
+        function ajouterCercle(d) {
+            var newNode = { id: nodes.length + 1, x: d.x + 100, y: d.y, name: "Nouveau Cercle", url: "#" };
+            nodes.push(newNode);
+            dessinerCercles();
+        }
+
+        function ouvrirURL(d) {
+            window.open(d.url, "_blank");
+        }
 
         function updateLines() {
             var lineData = [];
@@ -92,7 +123,7 @@
                 });
             });
 
-            lines = svg.selectAll("line").data(lineData);
+            var lines = svg.selectAll("line").data(lineData);
 
             lines.enter().append("line")
                 .attr("x1", d => d.x1)
@@ -101,6 +132,50 @@
                 .attr("y2", d => d.y2);
 
             lines.exit().remove();
+        }
+
+        function ouvrirMenuContextuel(d) {
+            d3.event.preventDefault();
+
+            var top = d3.event.pageY - 10;
+            var left = d3.event.pageX - 10;
+
+            menu = d3.select("body")
+                .append("div")
+                .attr("class", "dropdown-menu")
+                .style("top", top + "px")
+                .style("left", left + "px");
+
+            menu.append("a")
+                .attr("class", "dropdown-item")
+                .text("Ajouter un cercle")
+                .on("click", function() {
+                    d3.event.preventDefault();
+                    ajouterCercle(d);
+                    menu.remove();
+                });
+
+            menu.append("a")
+                .attr("class", "dropdown-item")
+                .text("Renommer le cercle")
+                .on("click", function() {
+                    d3.event.preventDefault();
+                    renommerCercle(d);
+                    menu.remove();
+                });
+
+            menu.append("a")
+                .attr("class", "dropdown-item")
+                .text("Ouvrir")
+                .on("click", function() {
+                    d3.event.preventDefault();
+                    ouvrirURL(d);
+                    menu.remove();
+                });
+
+            d3.select("body").on("click", function() {
+                menu.remove();
+            });
         }
     </script>
 </body>
