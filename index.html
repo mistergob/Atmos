@@ -1,48 +1,27 @@
-var width = window.innerWidth,
-    height = window.innerHeight;
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactions avec des cercles</title>
+    <style>
+        /* Ajoutez vos styles CSS ici */
+        .dropdown-menu {
+            position: absolute;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            padding: 10px;
+        }
 
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
-
-var nodes = [
- {id: 1, x: 200, y: 200},
- {id: 2, x: 300, y: 200},
- // Ajoutez d'autres noeuds ici
-];
-
-var circles = svg.selectAll("circle")
-    .data(nodes)
-    .enter().append("circle")
-    .attr("r", 50)
-    .attr("cx", function(d) { return d.x; })
-    .attr("cy", function(d) { return d.y; })
-    .call(d3.drag()
-        .on("start", dragstarted)
-        .on("drag", dragged)
-        .on("end", dragended));
-
-function dragstarted(d) {
- d3.event.sourceEvent.stopPropagation();
-}
-
-function dragged(d) {
- d3.select(this)
-      .attr("cx", d.x = d3.event.x)
-      .attr("cy", d.y = d3.event.y);
-
- updateLines();
-}
-
-function dragended(d) {
- updateLines();
-}
-
-var lines = svg.selectAll("line");
-
-function updateLines() {
- var lineData = [];
-
- nodes.forEach(function(node1, index1) {
-    nodes.forEach(function(node2, index2) {
-      if (index1 != index2 && Math.abs(node1.x - node2.x) < 100 && Math.abs(node1.y - node2.y) < 100)
+        .dropdown-item {
+            display: block;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script>
+        // Le code JavaScript sera ici
+    </script>
+</body>
+</html>
