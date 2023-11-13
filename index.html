@@ -99,6 +99,46 @@ menu.append("a")
         renommerCercle(d);
         menu.remove();
     });
+        function updateLines() {
+    var lineData = [];
+
+    nodes.forEach(function(node1, index1) {
+        nodes.forEach(function(node2, index2) {
+            if (index1 != index2 && Math.abs(node1.x - node2.x) < 100 && Math.abs(node1.y - node2.y) < 100) {
+                lineData.push({"x1": node1.x, "y1": node1.y, "x2": node2.x, "y2": node2.y});
+            }
+        });
+    });
+
+    lines = lines.data(lineData, function(d) { return d.x1 + "-" + d.y1 + "-" + d.x2 + "-" + d.y2; });
+
+    lines.enter().append("line")
+        .attr("x1", function(d) { return d.x1; })
+        .attr("y1", function(d) { return d.y1; })
+        .attr("x2", function(d) { return d.x2; })
+        .attr("y2", function(d) { return d.y2; });
+
+    lines.exit().remove();
+}
+
+function ouvrirMenuContextuel(d) {
+    d3.event.preventDefault();
+
+    var top = d3.event.pageY - 10;
+    var left = d3.event.pageX - 10;
+
+    var menu = d3.select("body")
+        .append("div")
+        .attr("class", "dropdown-menu")
+        .style("top", top + "px")
+        .style("left", left + "px");
+
+    // ... Autres options du menu ici
+
+    d3.select("body").on("click", function() {
+        menu.remove();
+    });
+}
     </script>
 </body>
 </html>
