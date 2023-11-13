@@ -16,6 +16,12 @@
             margin: 5px 0;
             cursor: pointer;
         }
+
+        circle {
+            fill: white;
+            stroke: black;
+            stroke-width: 2px;
+        }
     </style>
 </head>
 <body>
@@ -29,23 +35,19 @@
             .attr("height", height);
 
         var nodes = [
-            {id: 1, x: 200, y: 200, name: "Cercle 1"},
-            {id: 2, x: 300, y: 200, name: "Cercle 2"}
-            // Ajoutez d'autres nœuds ici
+            {id: 1, x: 200, y: 200, name: "Cercle 1", url: "#"},
+            // Ajoutez d'autres nœuds initiaux ici si nécessaire
         ];
 
         var lines = svg.selectAll("line");
 
-        // Déclaration de la variable 'menu' au début du script
         var menu;
 
         dessinerCercles();
 
         function dessinerCercles() {
-            // Clear existing circles
-            svg.selectAll("circle").remove();
+            svg.selectAll("g").remove();
 
-            // Create group elements for each node
             const group = svg.selectAll("g")
                 .data(nodes)
                 .enter().append("g")
@@ -54,14 +56,12 @@
                     .on("drag", dragged)
                     .on("end", dragended));
 
-            // Append circles to each group
             group.append("circle")
                 .attr("r", 50)
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y)
                 .on("contextmenu", ouvrirMenuContextuel);
 
-            // Append text to each group
             group.append("text")
                 .attr("x", d => d.x)
                 .attr("y", d => d.y)
@@ -94,26 +94,18 @@
             }
         }
 
+        function ajouterCercle(d) {
+            var newNode = { id: nodes.length + 1, x: d.x + 100, y: d.y, name: "Nouveau Cercle", url: "#" };
+            nodes.push(newNode);
+            dessinerCercles();
+        }
+
+        function ouvrirURL(d) {
+            window.open(d.url, "_blank");
+        }
+
         function updateLines() {
-            var lineData = [];
-
-            nodes.forEach(function(node1, index1) {
-                nodes.forEach(function(node2, index2) {
-                    if (index1 != index2 && Math.abs(node1.x - node2.x) < 100 && Math.abs(node1.y - node2.y) < 100) {
-                        lineData.push({"x1": node1.x, "y1": node1.y, "x2": node2.x, "y2": node2.y});
-                    }
-                });
-            });
-
-            lines = lines.data(lineData, function(d) { return d.x1 + "-" + d.y1 + "-" + d.x2 + "-" + d.y2; });
-
-            lines.enter().append("line")
-                .attr("x1", function(d) { return d.x1; })
-                .attr("y1", function(d) { return d.y1; })
-                .attr("x2", function(d) { return d.x2; })
-                .attr("y2", function(d) { return d.y2; });
-
-            lines.exit().remove();
+            // Logique de mise à jour des lignes ici si nécessaire
         }
 
         function ouvrirMenuContextuel(d) {
@@ -122,7 +114,6 @@
             var top = d3.event.pageY - 10;
             var left = d3.event.pageX - 10;
 
-            // Initialisation de la variable 'menu'
             menu = d3.select("body")
                 .append("div")
                 .attr("class", "dropdown-menu")
@@ -131,10 +122,28 @@
 
             menu.append("a")
                 .attr("class", "dropdown-item")
+                .text("Ajouter un cercle")
+                .on("click", function() {
+                    d3.event.preventDefault();
+                    ajouterCercle(d);
+                    menu.remove();
+                });
+
+            menu.append("a")
+                .attr("class", "dropdown-item")
                 .text("Renommer le cercle")
                 .on("click", function() {
                     d3.event.preventDefault();
                     renommerCercle(d);
+                    menu.remove();
+                });
+
+            menu.append("a")
+                .attr("class", "dropdown-item")
+                .text("Ouvrir")
+                .on("click", function() {
+                    d3.event.preventDefault();
+                    ouvrirURL(d);
                     menu.remove();
                 });
 
