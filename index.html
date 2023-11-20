@@ -1,36 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Interactions avec des cercles</title>
-    <style>
-        /* Styles CSS */
-        .dropdown-menu {
-            position: absolute;
-            border: 1px solid #ddd;
-            background: #f9f9f9;
-            padding: 10px;
-        }
-
-        .dropdown-item {
-            display: block;
-            margin: 5px 0;
-            cursor: pointer;
-        }
-
-        circle {
-            fill: white;
-            stroke: black;
-            stroke-width: 2px;
-        }
-
-        line {
-            stroke: black;
-            stroke-width: 2px;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <title>BP-ATMOS</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <header>
+        <h1>BP-ATMOS</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="#">Accueil</a></li>
+            <li><a href="#">À propos</a></li>
+            <li><a href="#">Services</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section>
+            <h2>Bienvenue sur Mon Site Web</h2>
+            <p>    
+            <div class="container">
+        <div class="card">
+            <div class="face face1">
+                <div class="content">
+                    <img src="https://i.imgur.com/vPsI7FR.png">
+                    <h3>Design</h3>
+                </div>
+            </div>
+            <div class="face face2">
+                <div class="content">
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas cum cumque minus iste veritatis provident at.</p>
+                        <a href="#">Read More</a>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="face face1">
+                <div class="content">
+                    <img src="https://i.imgur.com/SxM1V0F.png">
+                    <h3>Code</h3>
+                </div>
+            </div>
+            <div class="face face2">
+                <div class="content">
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas cum cumque minus iste veritatis provident at.</p>
+                        <a href="#">Read More</a>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="face face1">
+                <div class="content">
+                    <img src="https://i.imgur.com/8RCEhiK.png">
+                    <h3>Launch</h3>
+                </div>
+            </div>
+            <div class="face face2">
+                <div class="content">
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas cum cumque minus iste veritatis provident at.</p>
+                        <a href="#">Read More</a>
+                </div>
+            </div>
+        </div>
+    </div></p>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
     <script>
         var width = window.innerWidth,
             height = window.innerHeight;
@@ -48,33 +83,38 @@
 
         dessinerCercles();
 
-        function dessinerCercles() {
-            svg.selectAll("g").remove();
+        function dessinerLignes() {
+    updateLines(); // Cette fonction met à jour les données de ligne et les dessine
+}
+function dessinerCercles() {
+    svg.selectAll("g").remove();
 
-            const group = svg.selectAll("g")
-                .data(nodes)
-                .enter().append("g")
-                .call(d3.drag()
-                    .on("start", dragstarted)
-                    .on("drag", dragged)
-                    .on("end", dragended));
+    // Dessiner d'abord les lignes
+    dessinerLignes();
 
-            group.append("circle")
-                .attr("r", 50)
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y)
-                .on("contextmenu", ouvrirMenuContextuel);
+    const group = svg.selectAll("g")
+        .data(nodes)
+        .enter().append("g")
+        .call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
 
-            group.append("text")
-                .attr("x", d => d.x)
-                .attr("y", d => d.y)
-                .attr("dy", ".35em")
-                .text(d => d.name)
-                .style("text-anchor", "middle");
+    group.append("circle")
+        .attr("r", 50)
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y)
+        .on("contextmenu", ouvrirMenuContextuel);
 
-            updateLines();
-        }
-
+    group.append("text")
+        .attr("x", d => d.x)
+        .attr("y", d => d.y)
+        .attr("dy", ".35em")
+        .text(d => d.name)
+        .style("text-anchor", "middle");
+}
+// Assurez-vous que cette fonction est appelée pour initialiser le dessin
+dessinerCercles();
         function dragstarted(d) {
             d3.event.sourceEvent.stopPropagation();
         }
@@ -110,29 +150,31 @@
         }
 
         function updateLines() {
-            var lineData = [];
+    var lineData = [];
 
-            nodes.forEach(function(node1, index1) {
-                nodes.forEach(function(node2, index2) {
-                    if (index1 != index2) {
-                        var distance = Math.sqrt(Math.pow(node1.x - node2.x, 2) + Math.pow(node1.y - node2.y, 2));
-                        if (distance < 200) { // 200 car le rayon de chaque cercle est de 50
-                            lineData.push({"x1": node1.x, "y1": node1.y, "x2": node2.x, "y2": node2.y});
-                        }
-                    }
-                });
-            });
+    nodes.forEach(function(node1, index1) {
+        nodes.forEach(function(node2, index2) {
+            if (index1 != index2) {
+                var distance = Math.sqrt(Math.pow(node1.x - node2.x, 2) + Math.pow(node1.y - node2.y, 2));
+                if (distance < 200) {
+                    lineData.push({"x1": node1.x, "y1": node1.y, "x2": node2.x, "y2": node2.y});
+                }
+            }
+        });
+    });
 
-            var lines = svg.selectAll("line").data(lineData);
+    var lines = svg.selectAll("line").data(lineData);
 
-            lines.enter().append("line")
-                .attr("x1", d => d.x1)
-                .attr("y1", d => d.y1)
-                .attr("x2", d => d.x2)
-                .attr("y2", d => d.y2);
+    lines.enter().append("line")
+        .merge(lines)
+        .attr("x1", d => d.x1)
+        .attr("y1", d => d.y1)
+        .attr("x2", d => d.x2)
+        .attr("y2", d => d.y2);
 
-            lines.exit().remove();
-        }
+    lines.exit().remove();
+}
+
 
         function ouvrirMenuContextuel(d) {
             d3.event.preventDefault();
@@ -178,5 +220,10 @@
             });
         }
     </script>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Mon Site Web</p>
+    </footer>
 </body>
 </html>
