@@ -7,7 +7,7 @@
   <style>
     :root{
       --bg:#f5f6f8; --card:#fff; --text:#111827; --muted:#6b7280; --primary:#cc0000; --ring:rgba(17,24,39,0.08);
-      --sidebar-w:260px; --sidebar2-w:0px; /* Menu 2 caché par défaut */
+      --sidebar-w:260px; --sidebar2-w:0px;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -31,7 +31,7 @@
     .node.snap-target{outline:3px dashed #10b981}
     .node .label{pointer-events:none;line-height:1.1;width:100%;max-width:100%;overflow:hidden;word-break:break-word;hyphens:auto}
 
-    /* Menu 3 */
+    /* Menu contextuel générique */
     .menu{position:fixed;display:none;flex-direction:column;min-width:260px;background:var(--card);border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.15);overflow:hidden;z-index:50}
     .menu button{appearance:none;background:transparent;border:0;text-align:left;padding:12px 14px;font-size:14px;cursor:pointer}
     .menu button:hover{background:#f3f4f6}
@@ -58,20 +58,28 @@
     .child-list li{padding:6px 8px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;margin-bottom:6px;font-size:13px;cursor:pointer}
     .child-list li:hover{background:#f3f4f6}
 
+    /* Raccourci recentrage coeur */
+    .home-btn{position:fixed;right:16px;bottom:16px;width:44px;height:44px;border-radius:9999px;border:1px solid #e5e7eb;background:#fff;box-shadow:0 8px 24px var(--ring);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;z-index:65}
+
     /* Pulse */
     @keyframes pulseNode{0%{box-shadow:0 0 0 0 rgba(17,24,39,.35)}100%{box-shadow:0 0 0 6px rgba(17,24,39,0)}}
     .node.pulse{animation:pulseNode 600ms ease-out 2}
   </style>
 </head>
 <body>
-  <!-- Menu 1 (sans titre) -->
+  <!-- Menu 1 -->
   <aside id="sidebar" class="sidebar" aria-label="Navigation">
     <div id="principalList"></div>
   </aside>
 
-  <!-- Menu 2 (actions, sans titre) -->
+  <!-- Menu 2 (actions, visible uniquement après sélection via Menu 1) -->
   <aside id="actions" class="sidebar sidebar2" aria-label="Actions du cercle">
     <div id="selectedInfo" style="font-size:12px;color:var(--muted);margin:0 0 8px;">Aucun cercle sélectionné</div>
+    <!-- Nouveau : Titre direct -->
+    <div class="row" aria-label="Titre (panneau)">
+      <label for="titleInput2">Titre</label>
+      <input id="titleInput2" type="text" placeholder="Nom du cercle" style="flex:1; height:28px; border:1px solid #e5e7eb; border-radius:6px; padding:0 8px;" />
+    </div>
     <button id="actAddPrincipal" class="side-item" type="button">➕ Cercle principal</button>
     <button id="actAddSecondary" class="side-item" type="button">➕ Cercle secondaire</button>
     <div class="row" aria-label="Couleur (panneau)">
@@ -102,7 +110,6 @@
       </div>
     </div>
     <button id="actCenter" class="side-item" type="button">🎯 Centrer sur le cercle</button>
-    <button id="actRename" class="side-item" type="button">✏️ Renommer le cercle</button>
     <button id="actDelete" class="side-item" type="button" style="background:#b91c1c">🗑️ Supprimer le cercle</button>
   </aside>
 
@@ -116,7 +123,7 @@
     </div>
   </div>
 
-  <!-- Menu 3 (clic droit) -->
+  <!-- Menu 3 (générique) -->
   <div id="menu" class="menu" role="menu" aria-hidden="true">
     <button data-action="add">➕ Cercle principal</button>
     <button data-action="addSmall">➕ Cercle secondaire</button>
@@ -153,6 +160,43 @@
     <button data-action="delete">🗑️ Supprimer le cercle</button>
   </div>
 
+  <!-- Menu 4 (cœur) : copie du Menu 3 -->
+  <div id="menuHeart" class="menu" role="menu" aria-hidden="true">
+    <button data-action="add">➕ Cercle principal</button>
+    <button data-action="addSmall">➕ Cercle secondaire</button>
+    <button data-action="color">🎨 Modifier la couleur</button>
+    <div class="row" aria-label="Sélecteur de couleur">
+      <label for="colorPickerH">Couleur</label>
+      <input id="colorPickerH" type="color" value="#CC0000" />
+    </div>
+    <div class="row" aria-label="Police">
+      <label for="fontSelectH">Police</label>
+      <select id="fontSelectH">
+        <option value="system-ui">Système</option>
+        <option value="Arial">Arial</option>
+        <option value="Roboto">Roboto</option>
+        <option value="Georgia">Georgia</option>
+        <option value="'Times New Roman'">Times New Roman</option>
+        <option value="'Courier New'">Courier New</option>
+      </select>
+    </div>
+    <div class="row" aria-label="Taille de police">
+      <label for="fontSizeMaxH">Taille max</label>
+      <input id="fontSizeMaxH" type="number" min="6" max="72" step="1" value="32" />
+    </div>
+    <div class="row" aria-label="Style de texte">
+      <label>Style</label>
+      <div class="toggle-group">
+        <button type="button" id="boldBtnH" class="toggle" aria-pressed="true">Gras</button>
+        <button type="button" id="italicBtnH" class="toggle" aria-pressed="false">Italique</button>
+        <button type="button" id="underlineBtnH" class="toggle" aria-pressed="false">Souligné</button>
+      </div>
+    </div>
+    <button data-action="center">🎯 Centrer sur le cercle</button>
+    <button data-action="rename">✏️ Renommer le cercle</button>
+    <button data-action="delete">🗑️ Supprimer le cercle</button>
+  </div>
+
   <!-- Outils -->
   <div class="toolbar" aria-label="Actions rapides">
     <button id="exportBtn">Exporter JSON</button>
@@ -161,17 +205,22 @@
     <input id="fileInput" type="file" accept="application/json" style="display:none" />
   </div>
 
+  <!-- Bouton recentrer cœur -->
+  <button id="homeBtn" class="home-btn" title="Recentrer sur le cœur">♥</button>
+
   <script>
     /* Elements */
     const stage = document.getElementById('stage');
     const world = document.getElementById('world');
     const svg = document.getElementById('wires');
-    const menu = document.getElementById('menu');
+    const menu = document.getElementById('menu');           // Menu 3
+    const menuHeart = document.getElementById('menuHeart'); // Menu 4
     const mainNode = document.getElementById('main-node');
     const exportBtn = document.getElementById('exportBtn');
     const importBtn = document.getElementById('importBtn');
     const resetBtn = document.getElementById('resetBtn');
     const fileInput = document.getElementById('fileInput');
+    const homeBtn = document.getElementById('homeBtn');
 
     /* Menu 3 controls */
     const colorPicker = document.getElementById('colorPicker');
@@ -181,14 +230,22 @@
     const italicBtn = document.getElementById('italicBtn');
     const underlineBtn = document.getElementById('underlineBtn');
 
+    /* Menu 4 controls (coeur) */
+    const colorPickerH = document.getElementById('colorPickerH');
+    const fontSelectH = document.getElementById('fontSelectH');
+    const fontSizeMaxH = document.getElementById('fontSizeMaxH');
+    const boldBtnH = document.getElementById('boldBtnH');
+    const italicBtnH = document.getElementById('italicBtnH');
+    const underlineBtnH = document.getElementById('underlineBtnH');
+
     /* Menus 1/2 */
     const principalList = document.getElementById('principalList');
     const actionsPanel = document.getElementById('actions');
     const selectedInfo = document.getElementById('selectedInfo');
+    const titleInput2 = document.getElementById('titleInput2');
     const actAddPrincipal = document.getElementById('actAddPrincipal');
     const actAddSecondary = document.getElementById('actAddSecondary');
     const actCenter = document.getElementById('actCenter');
-    const actRename = document.getElementById('actRename');
     const actDelete = document.getElementById('actDelete');
     const colorPicker2 = document.getElementById('colorPicker2');
     const fontSelect2 = document.getElementById('fontSelect2');
@@ -216,7 +273,6 @@
     /* Couleur utils */
     function normalizeHex(input){ if(!input) return null; let m=String(input).match(/^#?([0-9a-fA-F]{6})$/); if(m) return '#'+m[1].toUpperCase(); m=String(input).match(/^#?([0-9a-fA-F]{3})$/); if(m) return '#'+m[1].split('').map(c=>c+c).join('').toUpperCase(); return null; }
     function toHex(input){ if(!input) return null; const hex=String(input).trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i); if(hex){ const h=hex[1]; return '#'+(h.length===3?h.split('').map(c=>c+c).join(''):h).toUpperCase(); } const m=String(input).match(/rgba?\(\s*([0-9.]+)[,\s]+([0-9.]+)[,\s]+([0-9.]+)/i); if(!m) return null; const [r,g,b]=[m[1],m[2],m[3]].map(v=>Math.max(0,Math.min(255,Math.round(parseFloat(v))))); return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase(); }
-    function contrastText(hex){ const h=(normalizeHex(hex)||'#000000').slice(1); const r=parseInt(h.substr(0,2),16), g=parseInt(h.substr(2,2),16), b=parseInt(h.substr(4,2),16); const yiq=(r*299+g*587+b*114)/1000; return yiq>=186 ? '#111827' : '#ffffff'; }
 
     /* Lignes */
     const qLines = ()=> svg.querySelectorAll('line');
@@ -260,46 +316,57 @@
       const ctrls=actionsPanel.querySelectorAll('button,select,input');
       ctrls.forEach(el=>{ el.disabled=!enabled; if(!enabled && el.classList.contains('toggle')) el.setAttribute('aria-pressed','false'); });
       selectedInfo.textContent = enabled && currentNode ? (currentNode.querySelector('.label')?.textContent || currentNode.dataset.id) : 'Aucun cercle sélectionné';
+      titleInput2.value = enabled && currentNode ? (currentNode.querySelector('.label')?.textContent || '') : '';
     }
     function syncActionPanel(){
       if(!currentNode){ enableActionPanel(false); return; }
       enableActionPanel(true);
       const hex = toHex(getComputedStyle(currentNode).backgroundColor) || '#CC0000';
-      colorPicker.value=hex; colorPicker2.value=hex;
+      colorPicker.value=hex; colorPicker2.value=hex; colorPickerH.value=hex;
       const label=currentNode.querySelector('.label');
       const fam = label.style.fontFamily && Array.from(fontSelect.options).some(o=>o.value===label.style.fontFamily) ? label.style.fontFamily : 'system-ui';
-      fontSelect.value=fam; fontSelect2.value=fam;
-      const cap=currentNode.dataset.maxFont || '32'; fontSizeMax.value=cap; fontSizeMax2.value=cap;
+      fontSelect.value=fam; fontSelect2.value=fam; fontSelectH.value=fam;
+      const cap=currentNode.dataset.maxFont || '32'; fontSizeMax.value=cap; fontSizeMax2.value=cap; fontSizeMaxH.value=cap;
       const cs=getComputedStyle(label);
       const fw=parseInt(cs.fontWeight,10); const isBold=(fw>=600)||cs.fontWeight==='bold';
       const isItalic=cs.fontStyle==='italic';
       const isUnderline=(cs.textDecorationLine||cs.textDecoration||'').includes('underline');
-      [boldBtn,boldBtn2].forEach(b=>b.setAttribute('aria-pressed', isBold?'true':'false'));
-      [italicBtn,italicBtn2].forEach(b=>b.setAttribute('aria-pressed', isItalic?'true':'false'));
-      [underlineBtn,underlineBtn2].forEach(b=>b.setAttribute('aria-pressed', isUnderline?'true':'false'));
+      [boldBtn,boldBtn2,boldBtnH].forEach(b=>b.setAttribute('aria-pressed', isBold?'true':'false'));
+      [italicBtn,italicBtn2,italicBtnH].forEach(b=>b.setAttribute('aria-pressed', isItalic?'true':'false'));
+      [underlineBtn,underlineBtn2,underlineBtnH].forEach(b=>b.setAttribute('aria-pressed', isUnderline?'true':'false'));
     }
     function setCurrentNode(node,{fromMenu1=false}={}){
       world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
       currentNode=node||null;
       if(currentNode) currentNode.classList.add('selected');
       syncActionPanel();
-      showActionsPanel(fromMenu1);        // Menu 2 strict
+      showActionsPanel(fromMenu1); // Menu 2 strict
     }
 
     /* Caméra */
-    function centerOnCurrent(){
-      if(!currentNode) return;
+    function centerOnNode(node){
+      if(!node) return;
       const sr=stageRect();
-      const c=centerInWorld(currentNode);
+      const c=centerInWorld(node);
       camera.x = sr.width/2  - c.x*camera.z;
       camera.y = sr.height/2 - c.y*camera.z;
       applyCamera();
-      currentNode.classList.add('pulse'); setTimeout(()=>currentNode.classList.remove('pulse'),800);
+      node.classList.add('pulse'); setTimeout(()=>node.classList.remove('pulse'),800);
     }
+    function centerOnCurrent(){ if(currentNode) centerOnNode(currentNode); }
+    homeBtn.addEventListener('click',()=> centerOnNode(mainNode));
 
     /* Déplacement & snap */
     function isPrincipalNode(n){ const w=parseFloat(getComputedStyle(n).width)||0; return approxEq(w,BIG_SIZE); }
     function isSecondaryNode(n){ const w=parseFloat(getComputedStyle(n).width)||0; return approxEq(w,SMALL_SIZE); }
+    function neighborsOf(id){
+      const res=[]; qLines().forEach(l=>{ if(l.dataset.from===id) res.push(l.dataset.to); else if(l.dataset.to===id) res.push(l.dataset.from); });
+      return Array.from(new Set(res));
+    }
+    function secondariesOfPrincipal(principalEl){
+      const ids = neighborsOf(principalEl.dataset.id);
+      return ids.map(id=>world.querySelector(`[data-id="${id}"]`)).filter(Boolean).filter(isSecondaryNode);
+    }
     function nearestPrincipal(toNode){
       const sC=centerInWorld(toNode); let best=null,bestDist=Infinity;
       world.querySelectorAll('.node').forEach(n=>{ if(!isPrincipalNode(n)||n===toNode) return; const c=centerInWorld(n); const d=Math.hypot(sC.x-c.x,sC.y-c.y); if(d<bestDist){ best=n; bestDist=d; }});
@@ -329,35 +396,56 @@
 
     function enableDrag(node){
       if(node._dragEnabled) return;
-      let offsetXw=0, offsetYw=0, dragging=false;
+      let offsetXw=0, offsetYw=0, dragging=false, prevLeft=0, prevTop=0;
       node.addEventListener('pointerdown',(e)=>{
-        if(e.button!==0) return;
+        if(e.button!==0) return; // drag uniquement clic gauche
         setCurrentNode(node,{fromMenu1:false});
-        menu.style.display='none';
+        // fermer menus
+        closeMenu(menu); closeMenu(menuHeart);
         node.setPointerCapture(e.pointerId);
         const rect=node.getBoundingClientRect();
         offsetXw = (e.clientX - rect.left) / camera.z;
         offsetYw = (e.clientY - rect.top)  / camera.z;
+        prevLeft = parseFloat(node.style.left)||0;
+        prevTop  = parseFloat(node.style.top)||0;
         dragging=true;
       });
       node.addEventListener('pointermove',(ev)=>{
         if(!dragging) return;
         const sr=stageRect();
-        const w=node.offsetWidth, h=node.offsetHeight;
         const worldX = (ev.clientX - sr.left - camera.x)/camera.z;
         const worldY = (ev.clientY - sr.top  - camera.y)/camera.z;
-        const newLeft = clamp(worldX - offsetXw, 0, (sr.width/camera.z) - w);
-        const newTop  = clamp(worldY - offsetYw, 0, (sr.height/camera.z) - h);
+        const newLeft = worldX - offsetXw;   // plus de clamp → déplacement libre
+        const newTop  = worldY - offsetYw;
+
+        const dx = newLeft - prevLeft;
+        const dy = newTop  - prevTop;
+
         node.style.left=newLeft+'px';
         node.style.top =newTop +'px';
         updateLinesFor(node);
         fitLabelToNode(node);
 
+        // Si principal → faire suivre ses secondaires
+        if(isPrincipalNode(node) && (dx !== 0 || dy !== 0)){
+          secondariesOfPrincipal(node).forEach(sec=>{
+            const sl = (parseFloat(sec.style.left)||0) + dx;
+            const st = (parseFloat(sec.style.top)||0) + dy;
+            sec.style.left = sl + 'px';
+            sec.style.top  = st + 'px';
+            updateLinesFor(sec);
+          });
+        }
+
+        // Indice d'accroche pour un secondaire en drag
         if(isSecondaryNode(node)){
           const {node:pri, dist} = nearestPrincipal(node);
           if(snapHint && snapHint!==pri) snapHint.classList.remove('snap-target');
           if(pri && dist <= SNAP_RANGE){ pri.classList.add('snap-target'); snapHint=pri; } else { if(snapHint){ snapHint.classList.remove('snap-target'); snapHint=null; } }
         }
+
+        prevLeft = newLeft;
+        prevTop  = newTop;
       });
       node.addEventListener('pointerup',(e)=>{
         if(!dragging) return;
@@ -369,7 +457,12 @@
         }
         saveState();
       });
-      node.addEventListener('contextmenu',(e)=>{ e.preventDefault(); openMenu(e,node); });
+      node.addEventListener('contextmenu',(e)=>{
+        e.preventDefault();
+        // Clic droit : cœur → menu 4, sinon menu 3
+        if(node.id === 'main-node') openMenuAt(menuHeart, e, node);
+        else openMenuAt(menu, e, node);
+      });
       node._dragEnabled=true;
     }
 
@@ -378,8 +471,8 @@
       const sr=stageRect();
       const tRect=target.getBoundingClientRect();
       const tW=target.offsetWidth, tH=target.offsetHeight;
-      const left = clamp(((tRect.left - sr.left - camera.x)/camera.z) + tW + 30, 0, (sr.width/camera.z) - BIG_SIZE);
-      const top  = clamp(((tRect.top  - sr.top  - camera.y)/camera.z) + tH + 30, 0, (sr.height/camera.z) - BIG_SIZE);
+      const left = ((tRect.left - sr.left - camera.x)/camera.z) + tW + 30;
+      const top  = ((tRect.top  - sr.top  - camera.y)/camera.z) + tH + 30;
       const node=document.createElement('div'); node.className='node'; node.dataset.id=`node-${idCounter++}`;
       Object.assign(node.style,{left:left+'px',top:top+'px',width:BIG_SIZE+'px',height:BIG_SIZE+'px',backgroundColor: toHex(getComputedStyle(target).backgroundColor) || '#CC0000'});
       node.innerHTML='<span class="label">Cercle principal</span>';
@@ -389,76 +482,95 @@
       const sr=stageRect();
       const tRect=target.getBoundingClientRect();
       const tW=target.offsetWidth, tH=target.offsetHeight;
-      const left = clamp(((tRect.left - sr.left - camera.x)/camera.z) + tW + 30, 0, (sr.width/camera.z) - SMALL_SIZE);
-      const top  = clamp(((tRect.top  - sr.top  - camera.y)/camera.z) + tH + 30, 0, (sr.height/camera.z) - SMALL_SIZE);
+      const left = ((tRect.left - sr.left - camera.x)/camera.z) + tW + 30;
+      const top  = ((tRect.top  - sr.top  - camera.y)/camera.z) + tH + 30;
       const node=document.createElement('div'); node.className='node'; node.dataset.id=`node-${idCounter++}`;
       Object.assign(node.style,{left:left+'px',top:top+'px',width:SMALL_SIZE+'px',height:SMALL_SIZE+'px',backgroundColor: toHex(getComputedStyle(target).backgroundColor) || '#CC0000'});
       node.innerHTML='<span class="label">Cercle secondaire</span>';
       world.appendChild(node); enableDrag(node); fitLabelToNode(node); createLine(target,node); setCurrentNode(node,{fromMenu1:false}); saveState(); return node;
     }
 
-    /* Menu 3 */
-    function openMenu(event,node){
-      if(!event){ menu.style.display='none'; return; }
-      if(node) setCurrentNode(node,{fromMenu1:false}); else if(!currentNode) return;
-      menu.style.display='flex'; menu.setAttribute('aria-hidden','false');
-      const hex=toHex(getComputedStyle(currentNode).backgroundColor)||'#CC0000'; colorPicker.value=hex;
-      const lbl=currentNode.querySelector('.label'); const fam = lbl.style.fontFamily && Array.from(fontSelect.options).some(o=>o.value===lbl.style.fontFamily)? lbl.style.fontFamily : 'system-ui'; fontSelect.value=fam;
-      fontSizeMax.value=currentNode.dataset.maxFont||'32';
+    /* Menus contextuels (3 et 4) */
+    function openMenuAt(whichMenu, event, node){
+      if(!event){ whichMenu.style.display='none'; whichMenu.setAttribute('aria-hidden','true'); return; }
+      setCurrentNode(node,{fromMenu1:false});
+      // sync
+      const hex=toHex(getComputedStyle(currentNode).backgroundColor)||'#CC0000';
+      (whichMenu.querySelector('input[type="color"]')||{}).value = hex;
+      const lbl=currentNode.querySelector('.label');
+      const selects = whichMenu.querySelectorAll('select');
+      selects.forEach(sel=>{
+        const fam = lbl.style.fontFamily && Array.from(sel.options).some(o=>o.value===lbl.style.fontFamily)? lbl.style.fontFamily : 'system-ui';
+        sel.value=fam;
+      });
+      const sizeInput = whichMenu.querySelector('input[type="number"]'); if(sizeInput) sizeInput.value = currentNode.dataset.maxFont || '32';
       const cs=getComputedStyle(lbl); const fw=parseInt(cs.fontWeight,10); const isBold=(fw>=600)||cs.fontWeight==='bold'; const isIt=cs.fontStyle==='italic'; const isUl=(cs.textDecorationLine||cs.textDecoration||'').includes('underline');
-      boldBtn.setAttribute('aria-pressed',isBold?'true':'false'); italicBtn.setAttribute('aria-pressed',isIt?'true':'false'); underlineBtn.setAttribute('aria-pressed',isUl?'true':'false');
-      const mRect=menu.getBoundingClientRect(); const vw=innerWidth,vh=innerHeight; const x=Math.min(event.clientX,vw-mRect.width-8); const y=Math.min(event.clientY,vh-mRect.height-8); menu.style.left=x+'px'; menu.style.top=y+'px'; event.stopPropagation();
-    }
-    function closeMenu(){ menu.style.display='none'; menu.setAttribute('aria-hidden','true'); }
+      whichMenu.querySelectorAll('.toggle#boldBtn, .toggle#boldBtnH').forEach(b=>b.setAttribute('aria-pressed', isBold?'true':'false'));
+      whichMenu.querySelectorAll('.toggle#italicBtn, .toggle#italicBtnH').forEach(b=>b.setAttribute('aria-pressed', isIt?'true':'false'));
+      whichMenu.querySelectorAll('.toggle#underlineBtn, .toggle#underlineBtnH').forEach(b=>b.setAttribute('aria-pressed', isUl?'true':'false'));
 
+      // position
+      menu.style.display='none'; menuHeart.style.display='none';
+      whichMenu.style.display='flex'; whichMenu.setAttribute('aria-hidden','false');
+      const mRect=whichMenu.getBoundingClientRect(); const vw=innerWidth,vh=innerHeight; const x=Math.min(event.clientX,vw-mRect.width-8); const y=Math.min(event.clientY,vh-mRect.height-8); whichMenu.style.left=x+'px'; whichMenu.style.top=y+'px'; event.stopPropagation();
+    }
+    function closeMenu(whichMenu){ whichMenu.style.display='none'; whichMenu.setAttribute('aria-hidden','true'); }
+    document.addEventListener('click',(e)=>{ if(!menu.contains(e.target)) closeMenu(menu); if(!menuHeart.contains(e.target)) closeMenu(menuHeart); });
+
+    function applyColor(hex){ if(!currentNode) return; const v=normalizeHex(hex); if(!v) return; currentNode.style.backgroundColor=v; [colorPicker,colorPicker2,colorPickerH].forEach(el=>{ if(el) el.value=v; }); saveState(); }
+    function setFamily(val){ if(!currentNode) return; const l=currentNode.querySelector('.label'); l.style.fontFamily=val; [fontSelect,fontSelect2,fontSelectH].forEach(el=>{ if(el) el.value=val; }); fitLabelToNode(currentNode); saveState(); }
+    function setMax(v){ if(!currentNode) return; const min=6,max=72,val=Math.max(min,Math.min(max,parseFloat(v)||min)); currentNode.dataset.maxFont=String(val); [fontSizeMax,fontSizeMax2,fontSizeMaxH].forEach(el=>{ if(el) el.value=val; }); fitLabelToNode(currentNode); saveState(); }
+    function togglePressed(btn){ const newV = btn.getAttribute('aria-pressed')==='true'?'false':'true'; btn.setAttribute('aria-pressed',newV); return newV==='true'; }
+
+    // Menu 3 handlers
     menu.addEventListener('click',(e)=>{
       const btn=e.target.closest('button'); if(!btn||!currentNode) return;
       const action=btn.dataset.action;
-      if(action==='add'){ addNodeNear(currentNode); closeMenu(); return; }
-      if(action==='addSmall'){ addNodeNearScaled(currentNode); closeMenu(); return; }
+      if(action==='add'){ addNodeNear(currentNode); closeMenu(menu); return; }
+      if(action==='addSmall'){ addNodeNearScaled(currentNode); closeMenu(menu); return; }
       if(action==='color'){ colorPicker.focus(); colorPicker.click(); return; }
-      if(action==='center'){ centerOnCurrent(); closeMenu(); return; }
-      if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); } closeMenu(); return; }
-      if(action==='delete'){ if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); } else { qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); } closeMenu(); return; }
+      if(action==='center'){ centerOnCurrent(); closeMenu(menu); return; }
+      if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); } closeMenu(menu); return; }
+      if(action==='delete'){ if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); } else { qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); } closeMenu(menu); return; }
     });
-
-    /* Couleur / Police / Styles */
-    function applyColor(hex){ if(!currentNode) return; const v=normalizeHex(hex); if(!v) return; currentNode.style.backgroundColor=v; colorPicker.value=v; colorPicker2.value=v; saveState(); }
     colorPicker.addEventListener('input',(e)=> applyColor(e.target.value));
-    colorPicker2.addEventListener('input',(e)=> applyColor(e.target.value));
-
-    function setFamily(val){ if(!currentNode) return; const l=currentNode.querySelector('.label'); l.style.fontFamily=val; fontSelect.value=val; fontSelect2.value=val; fitLabelToNode(currentNode); saveState(); }
     fontSelect.addEventListener('change',(e)=> setFamily(e.target.value));
-    fontSelect2.addEventListener('change',(e)=> setFamily(e.target.value));
-    function setMax(v){ if(!currentNode) return; const min=6,max=72,val=Math.max(min,Math.min(max,parseFloat(v)||min)); currentNode.dataset.maxFont=String(val); fontSizeMax.value=val; fontSizeMax2.value=val; fitLabelToNode(currentNode); saveState(); }
     fontSizeMax.addEventListener('input',(e)=> setMax(e.target.value));
-    fontSizeMax2.addEventListener('input',(e)=> setMax(e.target.value));
-    function togglePair(a,b,apply){ if(!currentNode) return; const pressed=a.getAttribute('aria-pressed')==='true'?'false':'true'; a.setAttribute('aria-pressed',pressed); b.setAttribute('aria-pressed',pressed); apply(pressed==='true'); fitLabelToNode(currentNode); saveState(); }
-    boldBtn .addEventListener('click',(e)=>{ e.stopPropagation(); togglePair(boldBtn ,boldBtn2 ,(on)=> currentNode.querySelector('.label').style.fontWeight = on?'700':'400'); });
-    boldBtn2.addEventListener('click',(e)=>{ e.stopPropagation(); togglePair(boldBtn2,boldBtn  ,(on)=> currentNode.querySelector('.label').style.fontWeight = on?'700':'400'); });
-    italicBtn .addEventListener('click',(e)=>{ e.stopPropagation(); togglePair(italicBtn ,italicBtn2,(on)=> currentNode.querySelector('.label').style.fontStyle = on?'italic':'normal'); });
-    italicBtn2.addEventListener('click',(e)=>{ e.stopPropagation(); togglePair(italicBtn2,italicBtn ,(on)=> currentNode.querySelector('.label').style.fontStyle = on?'italic':'normal'); });
-    underlineBtn .addEventListener('click',(e)=>{ e.stopPropagation(); togglePair(underlineBtn ,underlineBtn2,(on)=> currentNode.querySelector('.label').style.textDecoration = on?'underline':'none'); });
-    underlineBtn2.addEventListener('click',(e)=>{ e.stopPropagation(); togglePair(underlineBtn2,underlineBtn ,(on)=> currentNode.querySelector('.label').style.textDecoration = on?'underline':'none'); });
+    boldBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(boldBtn); currentNode.querySelector('.label').style.fontWeight = on?'700':'400'; fitLabelToNode(currentNode); saveState(); });
+    italicBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(italicBtn); currentNode.querySelector('.label').style.fontStyle = on?'italic':'normal'; fitLabelToNode(currentNode); saveState(); });
+    underlineBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(underlineBtn); currentNode.querySelector('.label').style.textDecoration = on?'underline':'none'; fitLabelToNode(currentNode); saveState(); });
+
+    // Menu 4 (cœur) handlers
+    menuHeart.addEventListener('click',(e)=>{
+      const btn=e.target.closest('button'); if(!btn||!currentNode) return;
+      const action=btn.dataset.action;
+      if(action==='add'){ addNodeNear(currentNode); closeMenu(menuHeart); return; }
+      if(action==='addSmall'){ addNodeNearScaled(currentNode); closeMenu(menuHeart); return; }
+      if(action==='color'){ colorPickerH.focus(); colorPickerH.click(); return; }
+      if(action==='center'){ centerOnCurrent(); closeMenu(menuHeart); return; }
+      if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); } closeMenu(menuHeart); return; }
+      if(action==='delete'){ if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); } else { qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); } closeMenu(menuHeart); return; }
+    });
+    colorPickerH.addEventListener('input',(e)=> applyColor(e.target.value));
+    fontSelectH.addEventListener('change',(e)=> setFamily(e.target.value));
+    fontSizeMaxH.addEventListener('input',(e)=> setMax(e.target.value));
+    boldBtnH.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(boldBtnH); currentNode.querySelector('.label').style.fontWeight = on?'700':'400'; fitLabelToNode(currentNode); saveState(); });
+    italicBtnH.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(italicBtnH); currentNode.querySelector('.label').style.fontStyle = on?'italic':'normal'; fitLabelToNode(currentNode); saveState(); });
+    underlineBtnH.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(underlineBtnH); currentNode.querySelector('.label').style.textDecoration = on?'underline':'none'; fitLabelToNode(currentNode); saveState(); });
 
     /* Menu 1 (principaux + secondaires) */
-    function getNodeById(id){ return world.querySelector(`[data-id="${id}"]`); }
-    function neighborsOf(id){ const res=[]; qLines().forEach(l=>{ if(l.dataset.from===id) res.push(l.dataset.to); else if(l.dataset.to===id) res.push(l.dataset.from);}); return Array.from(new Set(res)); }
-
     function stylePrincipalButtonFromNode(btn, node){
       const col = toHex(getComputedStyle(node).backgroundColor) || '#111827';
       btn.style.backgroundColor = col;
-      btn.style.color = contrastText(col);
+      btn.style.color = ((()=>{ const h=col.slice(1); const r=parseInt(h.substr(0,2),16), g=parseInt(h.substr(2,2),16), b=parseInt(h.substr(4,2),16); const yiq=(r*299+g*587+b*114)/1000; return yiq>=186 ? '#111827' : '#ffffff'; })());
       btn.style.borderColor = '#e5e7eb';
     }
-
     function populateChildren(principalId, ul){
       ul.innerHTML='';
-      const seconds=neighborsOf(principalId).map(getNodeById).filter(Boolean).filter(isSecondaryNode);
+      const seconds=neighborsOf(principalId).map(id=>world.querySelector(`[data-id="${id}"]`)).filter(Boolean).filter(isSecondaryNode);
       if(seconds.length===0){ const li=document.createElement('li'); li.textContent='Aucun cercle secondaire'; li.style.color='#6b7280'; li.style.borderStyle='dashed'; ul.appendChild(li); return; }
       seconds.forEach(n=>{ const li=document.createElement('li'); li.textContent=n.querySelector('.label')?.textContent || n.dataset.id; li.addEventListener('click',()=>{ setCurrentNode(n,{fromMenu1:true}); n.classList.add('pulse'); setTimeout(()=>n.classList.remove('pulse'),800); }); ul.appendChild(li); });
     }
-
     function refreshSidebar(){
       principalList.innerHTML='';
       const principals=Array.from(world.querySelectorAll('.node')).filter(isPrincipalNode);
@@ -466,7 +578,7 @@
         const wrap=document.createElement('div');
         const btn=document.createElement('button'); btn.className='side-item'; btn.type='button';
         btn.textContent=n.querySelector('.label')?.textContent||n.dataset.id;
-        stylePrincipalButtonFromNode(btn, n); /* couleur du bouton = couleur du cercle */
+        stylePrincipalButtonFromNode(btn, n);
         const ul=document.createElement('ul'); ul.className='child-list'; ul.style.display='none';
         btn.addEventListener('click',()=>{ setCurrentNode(n,{fromMenu1:true}); if(ul.style.display==='none'){ populateChildren(n.dataset.id,ul); ul.style.display='block'; } else { ul.style.display='none'; } });
         wrap.appendChild(btn); wrap.appendChild(ul); principalList.appendChild(wrap);
@@ -477,8 +589,22 @@
     actAddPrincipal.addEventListener('click',()=>{ if(!currentNode) return; addNodeNear(currentNode); });
     actAddSecondary.addEventListener('click',()=>{ if(!currentNode) return; addNodeNearScaled(currentNode); });
     actCenter.addEventListener('click',()=> centerOnCurrent());
-    actRename.addEventListener('click',()=>{ if(!currentNode) return; const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); syncActionPanel(); }});
+    // Suppression du bouton Renommer ici (remplacé par le champ Titre)
     actDelete.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); currentNode=null; enableActionPanel(false); saveState(); showActionsPanel(false); });
+
+    // Titre direct (Menu 2)
+    function applyTitleFromInput(){
+      if(!currentNode) return;
+      const v = (titleInput2.value||'').trim();
+      const label=currentNode.querySelector('.label');
+      label.textContent = v;
+      fitLabelToNode(currentNode);
+      saveState();
+      selectedInfo.textContent = v || currentNode.dataset.id;
+      refreshSidebar();
+    }
+    titleInput2.addEventListener('change', applyTitleFromInput);
+    titleInput2.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyTitleFromInput(); titleInput2.blur(); } });
 
     /* Toolbar */
     exportBtn.addEventListener('click',()=>{ const data=buildState(); const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='workspace.json'; a.click(); URL.revokeObjectURL(url); });
@@ -486,33 +612,22 @@
     fileInput.addEventListener('change', async (e)=>{ const f=e.target.files?.[0]; if(!f) return; try{ const text=await f.text(); restoreState(JSON.parse(text)); } catch{ alert('Fichier invalide.'); } finally { fileInput.value=''; } });
     resetBtn.addEventListener('click',()=>{ if(!confirm("Réinitialiser l'espace de travail ?")) return; localStorage.removeItem('workspaceState'); qLines().forEach(l=>l.remove()); world.querySelectorAll('.node').forEach(n=>{ if(n!==mainNode) n.remove(); }); mainNode.style.left='calc(50% - 55px)'; mainNode.style.top='calc(50% - 55px)'; mainNode.querySelector('.label').textContent='Cercle principal'; mainNode.style.backgroundColor='var(--primary)'; idCounter=1; camera.x=camera.y=0; camera.z=1; applyCamera(); saveState(); updateAllLines(); fitLabelToNode(mainNode); showActionsPanel(false); });
 
-    /* Global clicks */
-    document.addEventListener('click',(e)=>{ if(!menu.contains(e.target)) closeMenu(); });
-
-    /* Pan (clic gauche long 250ms) + désélection */
+    /* Pan au bouton milieu (clic roulette) */
     (function setupStagePan(){
-      let panActive=false, pressTimer=null, startX=0,startY=0,lastX=0,lastY=0;
-      const DELAY=250, THRESH=6;
+      let panActive=false, lastX=0,lastY=0;
       stage.addEventListener('pointerdown',(e)=>{
-        if(e.button!==0) return;
-        if(e.target.closest('.node') || menu.contains(e.target) || actionsPanel.contains(e.target) || document.getElementById('sidebar').contains(e.target)) return;
-        startX=lastX=e.clientX; startY=lastY=e.clientY;
-        pressTimer=setTimeout(()=>{ panActive=true; stage.classList.add('panning'); stage.setPointerCapture?.(e.pointerId); }, DELAY);
+        if(e.button!==1) return; // bouton milieu
+        e.preventDefault();
+        panActive=true; stage.classList.add('panning');
+        lastX=e.clientX; lastY=e.clientY;
+        stage.setPointerCapture?.(e.pointerId);
       });
       stage.addEventListener('pointermove',(e)=>{
-        if(pressTimer && (Math.abs(e.clientX-startX)>THRESH || Math.abs(e.clientY-startY)>THRESH)){ clearTimeout(pressTimer); pressTimer=null; }
         if(!panActive) return;
         const dx=e.clientX-lastX, dy=e.clientY-lastY; camera.x+=dx; camera.y+=dy; applyCamera(); lastX=e.clientX; lastY=e.clientY;
       });
       function endPan(e){
-        if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; }
         if(panActive){ panActive=false; stage.classList.remove('panning'); stage.releasePointerCapture?.(e.pointerId); }
-        else{
-          if(!e.target.closest('.node') && !menu.contains(e.target) && !actionsPanel.contains(e.target) && !document.getElementById('sidebar').contains(e.target)){
-            world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
-            currentNode=null; enableActionPanel(false); showActionsPanel(false);
-          }
-        }
       }
       stage.addEventListener('pointerup',endPan);
       stage.addEventListener('pointercancel',endPan);
