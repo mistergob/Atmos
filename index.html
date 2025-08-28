@@ -51,7 +51,7 @@
     .url-badge:hover{background:#f3f4f6}
 
     /* Menus contextuels (Menu 3 / Menu 4) */
-    .menu{position:fixed;display:none;flex-direction:column;min-width:260px;background:var(--card);border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.15);overflow:hidden;z-index:50}
+    .menu{position:fixed;display:none;flex-direction:column;min-width:280px;background:var(--card);border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.15);overflow:hidden;z-index:50}
     .menu-body{display:flex;flex-direction:column;gap:0}
     .menu button{appearance:none;background:transparent;border:0;text-align:left;padding:12px 14px;font-size:14px;cursor:pointer}
     .menu button:hover{background:#f3f4f6}
@@ -66,6 +66,7 @@
     .menu-footer{display:flex;gap:8px;justify-content:flex-end;padding:8px 10px;border-top:1px solid #e5e7eb;background:#fafafa}
     .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.04);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
     .icon-btn:hover{background:#f3f4f6}
+    .icon-btn.small{width:28px;height:28px;font-size:14px;border-radius:8px}
 
     /* Toolbar */
     .toolbar{position:fixed;right:16px;top:16px;display:flex;gap:8px;background:var(--card);border:1px solid #e5e7eb;border-radius:14px;padding:8px;box-shadow:0 8px 24px var(--ring);z-index:60}
@@ -157,7 +158,12 @@
       <button data-action="add">➕ Cercle principal</button>
       <button data-action="addSmall">➕ Cercle secondaire</button>
       <button data-action="wire">🔗 Connecter à…</button>
-      <button data-action="setUrl">🔗 Lier une URL…</button>
+
+      <!-- Bouton URL + icône d'ouverture à droite -->
+      <div class="row" aria-label="URL">
+        <button data-action="setUrl" style="flex:1">🔗 Lier une URL…</button>
+        <a id="openUrlBtnMenu" class="icon-btn small" title="Ouvrir l’URL" target="_blank" rel="noopener noreferrer">↗</a>
+      </div>
 
       <div class="row" aria-label="Sélecteur de couleur">
         <label for="colorPicker">Couleur</label>
@@ -281,6 +287,7 @@
     const iconColorBtn = document.getElementById('iconColorBtn');
     const iconCenterBtn = document.getElementById('iconCenterBtn');
     const iconDeleteBtn = document.getElementById('iconDeleteBtn');
+    const openUrlBtnMenu = document.getElementById('openUrlBtnMenu');
 
     /* Menu 4 controls (coeur) */
     const colorPickerH = document.getElementById('colorPickerH');
@@ -368,8 +375,8 @@
         line.setAttribute('stroke', '#d1d5db');       // gris clair
         line.setAttribute('stroke-dasharray', '6 6'); // pointillé
       }else{
-        line.setAttribute('stroke', '#111827');       // sombre
-        line.removeAttribute('stroke-dasharray');     // plein
+        line.setAttribute('stroke', '#111827');       // plein
+        line.removeAttribute('stroke-dasharray');
       }
     }
     function createLine(fromEl,toEl){
@@ -425,13 +432,12 @@
       [italicBtn,italicBtn2,italicBtnH].forEach(b=>b.setAttribute('aria-pressed', isItalic?'true':'false'));
       [underlineBtn,underlineBtn2,underlineBtnH].forEach(b=>b.setAttribute('aria-pressed', isUnderline?'true':'false'));
     }
-    function setCurrentNode(node,{fromMenu1=false,preserveMenu2=false,closeMenu2=false}={}){
+    function setCurrentNode(node,{fromMenu1=false,preserveMenu2=false}={}){
       world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
       currentNode=node||null;
       if(currentNode) currentNode.classList.add('selected');
       syncActionPanel();
       if(fromMenu1){ menu2Locked=true; showActionsPanel(true); }
-      else if(closeMenu2){ menu2Locked=false; showActionsPanel(false); }
       else if(!preserveMenu2 && !menu2Locked){ showActionsPanel(false); }
     }
 
@@ -503,13 +509,29 @@
     }
     function setNodeUrl(node, raw){
       const v = (raw||'').trim();
-      if(!v){ delete node.dataset.url; updateUrlBadge(node); saveState(); return; }
+      if(!v){ delete node.dataset.url; updateUrlBadge(node); syncOpenUrlIcon(); saveState(); return; }
       let url = v;
-      if(!/^https?:\/\//i.test(url)) url = 'https://' + url; // ajout schéma simple
+      if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
       try{ new URL(url); }catch{ alert('URL invalide.'); return; }
       node.dataset.url = url;
       updateUrlBadge(node);
+      syncOpenUrlIcon();
       saveState();
+    }
+    function syncOpenUrlIcon(){
+      if(!openUrlBtnMenu) return;
+      const url = currentNode?.dataset?.url;
+      if(url){
+        openUrlBtnMenu.href = url;
+        openUrlBtnMenu.style.opacity = '1';
+        openUrlBtnMenu.style.pointerEvents = 'auto';
+        openUrlBtnMenu.title = 'Ouvrir : ' + url;
+      }else{
+        openUrlBtnMenu.removeAttribute('href');
+        openUrlBtnMenu.style.opacity = '.4';
+        openUrlBtnMenu.style.pointerEvents = 'none';
+        openUrlBtnMenu.title = 'Aucune URL';
+      }
     }
 
     function enableDrag(node){
@@ -521,14 +543,14 @@
         if(wiring.active){
           e.preventDefault(); e.stopPropagation();
           if(!wiring.source){
-            setCurrentNode(node,{closeMenu2:true}); // sélection via zone schéma => Menu 2 ne s’ouvre pas / se ferme
+            setCurrentNode(node,{preserveMenu2:true});
             startWiring(node);
           }else{
             attemptConnect(node);
           }
           return;
         }
-        setCurrentNode(node,{closeMenu2:true}); // sélection via zone schéma => fermer menu 2
+        setCurrentNode(node,{preserveMenu2:true});
         closeMenu(menu); closeMenu(menuHeart);
         node.setPointerCapture(e.pointerId);
         const rect=node.getBoundingClientRect();
@@ -589,6 +611,7 @@
 
       node.addEventListener('contextmenu',(e)=>{
         e.preventDefault();
+        setCurrentNode(node,{preserveMenu2:true});
         if(node.id === 'main-node') openMenuAt(menuHeart, e, node);
         else openMenuAt(menu, e, node);
       });
@@ -624,7 +647,7 @@
     /* Menus contextuels (3 et 4) */
     function openMenuAt(whichMenu, event, node){
       if(!event){ whichMenu.style.display='none'; whichMenu.setAttribute('aria-hidden','true'); return; }
-      setCurrentNode(node,{closeMenu2:true});
+      setCurrentNode(node,{preserveMenu2:true});
       const hex=toHex(getComputedStyle(currentNode).backgroundColor)||'#CC0000';
       (whichMenu.querySelector('input[type="color"]')||{}).value = hex;
       const lbl=currentNode.querySelector('.label');
@@ -639,12 +662,17 @@
       setPressed(whichMenu.querySelector('#italicBtn')||whichMenu.querySelector('#italicBtnH'), isIt);
       setPressed(whichMenu.querySelector('#underlineBtn')||whichMenu.querySelector('#underlineBtnH'), isUl);
 
+      // Maj icône d’ouverture d’URL (menu 3)
+      if(whichMenu===menu) syncOpenUrlIcon();
+
       menu.style.display='none'; menuHeart.style.display='none';
       whichMenu.style.display='flex'; whichMenu.setAttribute('aria-hidden','false');
       const mRect=whichMenu.getBoundingClientRect(); const vw=innerWidth,vh=innerHeight; const x=Math.min(event.clientX,vw-mRect.width-8); const y=Math.min(event.clientY,vh-mRect.height-8); whichMenu.style.left=x+'px'; whichMenu.style.top=y+'px'; event.stopPropagation();
     }
     function closeMenu(whichMenu){ whichMenu.style.display='none'; whichMenu.setAttribute('aria-hidden','true'); }
     document.addEventListener('click',(e)=>{ if(!menu.contains(e.target)) closeMenu(menu); if(!menuHeart.contains(e.target)) closeMenu(menuHeart); });
+    openUrlBtnMenu.addEventListener('pointerdown',e=>e.stopPropagation());
+    openUrlBtnMenu.addEventListener('click',e=>{ e.stopPropagation(); }); // laisser l’ancre gérer l’ouverture
 
     function applyColor(hex){ if(!currentNode) return; const v=normalizeHex(hex); if(!v) return; currentNode.style.backgroundColor=v; [colorPicker,colorPicker2,colorPickerH].forEach(el=>{ if(el) el.value=v; }); saveState(); refreshSidebar(); }
     function setFamily(val){ if(!currentNode) return; const l=currentNode.querySelector('.label'); l.style.fontFamily=val; [fontSelect,fontSelect2,fontSelectH].forEach(el=>{ if(el) el.value=val; }); fitLabelToNode(currentNode); saveState(); }
@@ -663,7 +691,8 @@
         const val=prompt("Entrez une URL (laisser vide pour supprimer) :", curr);
         if(val===null) return;
         setNodeUrl(currentNode, val);
-        closeMenu(menu); return;
+        // ne pas fermer le menu pour permettre de cliquer sur ↗
+        return;
       }
       if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); refreshSidebar(); } closeMenu(menu); return; }
     });
@@ -752,7 +781,7 @@
     fileInput.addEventListener('change', async (e)=>{ const f=e.target.files?.[0]; if(!f) return; try{ const text=await f.text(); restoreState(JSON.parse(text)); } catch{ alert('Fichier invalide.'); } finally { fileInput.value=''; } });
     resetBtn.addEventListener('click',()=>{ if(!confirm("Réinitialiser l'espace de travail ?")) return; localStorage.removeItem('workspaceState'); qLines().forEach(l=>l.remove()); world.querySelectorAll('.node').forEach(n=>{ if(n!==mainNode) n.remove(); }); mainNode.style.left='calc(50% - 55px)'; mainNode.style.top='calc(50% - 55px)'; mainNode.querySelector('.label').textContent='Cercle principal'; mainNode.style.backgroundColor='var(--primary)'; idCounter=1; camera.x=camera.y=0; camera.z=1; applyCamera(); saveState(); updateAllLines(); fitLabelToNode(mainNode); showActionsPanel(false); menu2Locked=false; refreshSidebar(); });
 
-    /* Pan au bouton milieu (clic roulette) + désélection */
+    /* Pan au bouton milieu (clic roulette) + désélection (sans fermer Menu 2) */
     (function setupStagePan(){
       let panActive=false, lastX=0,lastY=0;
       stage.addEventListener('pointerdown',(e)=>{
@@ -765,7 +794,8 @@
         }
         if(e.button===0 && !wiring.active && !e.target.closest('.node') && !menu.contains(e.target) && !menuHeart.contains(e.target) && !actionsPanel.contains(e.target) && !document.getElementById('sidebar').contains(e.target)){
           world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
-          currentNode=null; enableActionPanel(false); showActionsPanel(false); menu2Locked=false;
+          currentNode=null; enableActionPanel(false);
+          // NE PAS fermer le Menu 2 ici (reste ouvert jusqu’au clic sur la croix)
         }
         if(e.button===0 && wiring.active && !e.target.closest('.node')) stopWiring();
       });
