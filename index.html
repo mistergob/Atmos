@@ -7,14 +7,14 @@
   <style>
     :root{
       --bg:#f5f6f8; --card:#fff; --text:#111827; --muted:#6b7280; --primary:#cc0000; --ring:rgba(17,24,39,0.08);
-      --sidebar-w:260px; --sidebar2-w:0px;
+      --sidebar-w:260px;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";background:var(--bg);color:var(--text);user-select:none;overflow:hidden}
 
-    /* Zone schéma */
-    .stage{position:relative;width:calc(100vw - var(--sidebar-w) - var(--sidebar2-w));height:100vh;margin-left:calc(var(--sidebar-w) + var(--sidebar2-w));display:grid;place-items:center}
+    /* Zone schéma (ne dépend plus de Menu 2) */
+    .stage{position:relative;width:calc(100vw - var(--sidebar-w));height:100vh;margin-left:var(--sidebar-w);display:grid;place-items:center}
     .stage.panning, .stage.panning *{cursor:grabbing !important}
 
     /* Monde pannable + zoomable */
@@ -51,14 +51,14 @@
     .url-badge:hover{background:#f3f4f6}
 
     /* Menus contextuels (Menu 3 / Menu 4) */
-    .menu{position:fixed;display:none;flex-direction:column;min-width:280px;background:var(--card);border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.15);overflow:hidden;z-index:50}
+    .menu{position:fixed;display:none;flex-direction:column;min-width:280px;background:var(--card);border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.15);overflow:hidden;z-index:70}
     .menu-body{display:flex;flex-direction:column;gap:0}
     .menu button{appearance:none;background:transparent;border:0;text-align:left;padding:12px 14px;font-size:14px;cursor:pointer}
     .menu button:hover{background:#f3f4f6}
     .menu .row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid #e5e7eb}
     .menu .row label{font-size:12px;color:var(--muted)}
     .menu .row input[type="color"]{width:36px;height:28px;border:1px solid #e5e7eb;border-radius:6px;padding:0;background:transparent;cursor:pointer}
-    .menu select,.menu input[type="number"]{height:28px;border:1px solid #e5e7eb;border-radius:6px;padding:0 8px;background:transparent}
+    .menu select,.menu input[type="number"],.menu input[type="text"]{height:28px;border:1px solid #e5e7eb;border-radius:6px;padding:0 8px;background:transparent}
     .menu .toggle-group{display:flex;gap:8px}
     .menu .toggle{padding:6px 10px;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer}
     .menu .toggle[aria-pressed="true"]{background:#111827;color:#fff}
@@ -69,22 +69,22 @@
     .icon-btn.small{width:28px;height:28px;font-size:14px;border-radius:8px}
 
     /* Toolbar */
-    .toolbar{position:fixed;right:16px;top:16px;display:flex;gap:8px;background:var(--card);border:1px solid #e5e7eb;border-radius:14px;padding:8px;box-shadow:0 8px 24px var(--ring);z-index:60}
+    .toolbar{position:fixed;right:16px;top:16px;display:flex;gap:8px;background:var(--card);border:1px solid #e5e7eb;border-radius:14px;padding:8px;box-shadow:0 8px 24px var(--ring);z-index:65}
     .toolbar button{padding:8px 12px;border:0;border-radius:10px;background:#111827;color:#fff;font-weight:600;cursor:pointer}
     .toolbar button.secondary{background:#4b5563}
     .toolbar button.danger{background:#b91c1c}
     .toolbar button.active{outline:2px solid #2563eb}
 
     /* Menus 1 & 2 */
-    .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--card);border-right:1px solid #e5e7eb;box-shadow:0 8px 24px var(--ring);padding:12px;overflow:auto;z-index:70}
-    .sidebar2{left:var(--sidebar-w);width:var(--sidebar2-w);display:none;position:relative}
+    .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--card);border-right:1px solid #e5e7eb;box-shadow:0 8px 24px var(--ring);padding:12px;overflow:auto;z-index:80}
+    .sidebar2{position:fixed;left:var(--sidebar-w);top:0;bottom:0;width:260px;background:var(--card);border-right:1px solid #e5e7eb;box-shadow:0 8px 24px var(--ring);padding:12px;overflow:auto;z-index:80;display:none}
     .side-item{width:100%;text-align:left;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#111827;color:#fff;font-weight:700;cursor:pointer;margin-bottom:8px;transition:filter .12s ease}
     .side-item:hover{filter:brightness(1.05)}
     .child-list{list-style:none;padding-left:10px;margin:6px 0 12px}
     .child-list li{padding:6px 8px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;margin-bottom:6px;font-size:13px;cursor:pointer}
     .child-list li:hover{background:#f3f4f6}
     /* Croix fermeture Menu 2 */
-    #closeMenu2{position:absolute; top:8px; right:8px; width:26px; height:26px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-weight:700}
+    #closeMenu2{position:sticky; top:0; float:right; width:26px; height:26px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-weight:700; margin-left:auto}
 
     /* Raccourci recentrage cœur */
     .home-btn{position:fixed;right:16px;bottom:16px;width:44px;height:44px;border-radius:9999px;border:1px solid #e5e7eb;background:#fff;box-shadow:0 8px 24px var(--ring);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;z-index:65}
@@ -100,13 +100,13 @@
     <div id="principalList"></div>
   </aside>
 
-  <!-- Menu 2 (visible uniquement après sélection via Menu 1) -->
+  <!-- Menu 2 (overlay, uniquement après sélection via Menu 1) -->
   <aside id="actions" class="sidebar sidebar2" aria-label="Actions du cercle">
     <button id="closeMenu2" title="Fermer">×</button>
     <div id="selectedInfo" style="font-size:12px;color:var(--muted);margin:0 0 8px;">Aucun cercle sélectionné</div>
     <div class="row" aria-label="Titre (panneau)">
       <label for="titleInput2">Titre</label>
-      <input id="titleInput2" type="text" placeholder="Nom du cercle" style="flex:1; height:28px; border:1px solid #e5e7eb; border-radius:6px; padding:0 8px;" />
+      <input id="titleInput2" type="text" placeholder="Nom du cercle" style="flex:1" />
     </div>
     <button id="actAddPrincipal" class="side-item" type="button">➕ Cercle principal</button>
     <button id="actAddSecondary" class="side-item" type="button">➕ Cercle secondaire</button>
@@ -155,20 +155,27 @@
   <!-- Menu 3 (générique) -->
   <div id="menu" class="menu" role="menu" aria-hidden="true">
     <div class="menu-body">
+      <!-- 1) Champ de nom tout en haut -->
+      <div class="row" aria-label="Titre (menu 3)">
+        <label for="titleInput3">Titre</label>
+        <input id="titleInput3" type="text" placeholder="Nom du cercle" style="flex:1" />
+      </div>
+
       <button data-action="add">➕ Cercle principal</button>
       <button data-action="addSmall">➕ Cercle secondaire</button>
-      <button data-action="wire">🔗 Connecter à…</button>
 
-      <!-- Bouton URL + icône d'ouverture à droite -->
+      <!-- URL -->
       <div class="row" aria-label="URL">
         <button data-action="setUrl" style="flex:1">🔗 Lier une URL…</button>
         <a id="openUrlBtnMenu" class="icon-btn small" title="Ouvrir l’URL" target="_blank" rel="noopener noreferrer">↗</a>
       </div>
 
+      <!-- 2) Couleur uniquement via le picker -->
       <div class="row" aria-label="Sélecteur de couleur">
         <label for="colorPicker">Couleur</label>
         <input id="colorPicker" type="color" value="#CC0000" />
       </div>
+
       <div class="row" aria-label="Police">
         <label for="fontSelect">Police</label>
         <select id="fontSelect">
@@ -193,43 +200,30 @@
         </div>
       </div>
 
-      <button data-action="rename">✏️ Renommer le cercle</button>
-
       <div class="menu-spacer"></div>
+      <!-- 3) Icônes en bas : 🔗, 🎯, 🗑️  (plus d’icône 🎨) -->
       <div class="menu-footer">
-        <button id="iconColorBtn" class="icon-btn" title="Modifier la couleur" aria-label="Modifier la couleur">🎨</button>
+        <button id="iconWireBtn" class="icon-btn" title="Connecter à…" aria-label="Connecter à…">🔗</button>
         <button id="iconCenterBtn" class="icon-btn" title="Centrer sur le cercle" aria-label="Centrer sur le cercle">🎯</button>
         <button id="iconDeleteBtn" class="icon-btn" title="Supprimer le cercle" aria-label="Supprimer le cercle">🗑️</button>
       </div>
     </div>
   </div>
 
-  <!-- Menu 4 (cœur) -->
+  <!-- Menu 4 (cœur) – inchangé -->
   <div id="menuHeart" class="menu" role="menu" aria-hidden="true">
     <div class="menu-body">
       <button data-action="add">➕ Cercle principal</button>
       <button data-action="addSmall">➕ Cercle secondaire</button>
       <button data-action="wire">🔗 Connecter à…</button>
-
-      <div class="row" aria-label="Sélecteur de couleur">
-        <label for="colorPickerH">Couleur</label>
-        <input id="colorPickerH" type="color" value="#CC0000" />
-      </div>
-      <div class="row" aria-label="Police">
-        <label for="fontSelectH">Police</label>
+      <div class="row" aria-label="Sélecteur de couleur"><label for="colorPickerH">Couleur</label><input id="colorPickerH" type="color" value="#CC0000" /></div>
+      <div class="row" aria-label="Police"><label for="fontSelectH">Police</label>
         <select id="fontSelectH">
-          <option value="system-ui">Système</option>
-          <option value="Arial">Arial</option>
-          <option value="Roboto">Roboto</option>
-          <option value="Georgia">Georgia</option>
-          <option value="'Times New Roman'">Times New Roman</option>
-          <option value="'Courier New'">Courier New</option>
+          <option value="system-ui">Système</option><option value="Arial">Arial</option><option value="Roboto">Roboto</option>
+          <option value="Georgia">Georgia</option><option value="'Times New Roman'">Times New Roman</option><option value="'Courier New'">Courier New</option>
         </select>
       </div>
-      <div class="row" aria-label="Taille de police">
-        <label for="fontSizeMaxH">Taille max</label>
-        <input id="fontSizeMaxH" type="number" min="6" max="72" step="1" value="32" />
-      </div>
+      <div class="row" aria-label="Taille de police"><label for="fontSizeMaxH">Taille max</label><input id="fontSizeMaxH" type="number" min="6" max="72" step="1" value="32" /></div>
       <div class="row" aria-label="Style de texte">
         <label>Style</label>
         <div class="toggle-group">
@@ -238,9 +232,7 @@
           <button type="button" id="underlineBtnH" class="toggle" aria-pressed="false">Souligné</button>
         </div>
       </div>
-
       <button data-action="rename">✏️ Renommer le cercle</button>
-
       <div class="menu-spacer"></div>
       <div class="menu-footer">
         <button id="iconColorBtnH" class="icon-btn" title="Modifier la couleur" aria-label="Modifier la couleur">🎨</button>
@@ -278,13 +270,14 @@
     const wireModeBtn = document.getElementById('wireModeBtn');
 
     /* Menu 3 controls */
+    const titleInput3 = document.getElementById('titleInput3');
     const colorPicker = document.getElementById('colorPicker');
     const fontSelect = document.getElementById('fontSelect');
     const fontSizeMax = document.getElementById('fontSizeMax');
     const boldBtn = document.getElementById('boldBtn');
     const italicBtn = document.getElementById('italicBtn');
     const underlineBtn = document.getElementById('underlineBtn');
-    const iconColorBtn = document.getElementById('iconColorBtn');
+    const iconWireBtn = document.getElementById('iconWireBtn');
     const iconCenterBtn = document.getElementById('iconCenterBtn');
     const iconDeleteBtn = document.getElementById('iconDeleteBtn');
     const openUrlBtnMenu = document.getElementById('openUrlBtnMenu');
@@ -321,7 +314,7 @@
     /* State */
     let currentNode = null;
     let idCounter = 1;
-    let menu2Locked = false; // ouvert uniquement via Menu 1, puis reste tant qu'on ne le ferme pas
+    let menu2Locked = false; // ouvert uniquement via Menu 1, puis reste tant qu’on ne le ferme pas
     const camera = { x: 0, y: 0, z: 1 };
     const BIG_SIZE = 110, SMALL_SIZE = 55;
     const SNAP_GAP = 12, SNAP_RANGE = 120;
@@ -403,12 +396,8 @@
     }
     const fitAllLabels=()=> world.querySelectorAll('.node').forEach(fitLabelToNode);
 
-    /* Menu 2 (strict via Menu 1) */
-    function showActionsPanel(show){
-      const root=document.documentElement;
-      actionsPanel.style.display = show ? 'block' : 'none';
-      root.style.setProperty('--sidebar2-w', show ? '260px' : '0px');
-    }
+    /* Menu 2 (overlay strict via Menu 1) */
+    function showActionsPanel(show){ actionsPanel.style.display = show ? 'block' : 'none'; }
     function enableActionPanel(enabled){
       const ctrls=actionsPanel.querySelectorAll('button,select,input');
       ctrls.forEach(el=>{ el.disabled=!enabled; if(!enabled && el.classList.contains('toggle')) el.setAttribute('aria-pressed','false'); });
@@ -431,6 +420,8 @@
       [boldBtn,boldBtn2,boldBtnH].forEach(b=>b.setAttribute('aria-pressed', isBold?'true':'false'));
       [italicBtn,italicBtn2,italicBtnH].forEach(b=>b.setAttribute('aria-pressed', isItalic?'true':'false'));
       [underlineBtn,underlineBtn2,underlineBtnH].forEach(b=>b.setAttribute('aria-pressed', isUnderline?'true':'false'));
+      // Remplir le champ du Menu 3 aussi
+      titleInput3.value = label.textContent || '';
     }
     function setCurrentNode(node,{fromMenu1=false,preserveMenu2=false}={}){
       world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
@@ -455,7 +446,7 @@
     homeBtn.addEventListener('click',()=> centerOnNode(mainNode));
     closeMenu2Btn.addEventListener('click', ()=>{ menu2Locked=false; showActionsPanel(false); });
 
-    /* Graphe & déplacement */
+    /* Graphe & déplacement liés */
     function neighborsOf(id){
       const res=[]; qLines().forEach(l=>{ if(l.dataset.from===id) res.push(l.dataset.to); else if(l.dataset.to===id) res.push(l.dataset.from); });
       return Array.from(new Set(res));
@@ -656,14 +647,14 @@
         sel.value=fam;
       });
       const sizeInput = whichMenu.querySelector('input[type="number"]'); if(sizeInput) sizeInput.value = currentNode.dataset.maxFont || '32';
+      // style toggles
       const cs=getComputedStyle(lbl); const fw=parseInt(cs.fontWeight,10); const isBold=(fw>=600)||cs.fontWeight==='bold'; const isIt=cs.fontStyle==='italic'; const isUl=(cs.textDecorationLine||cs.textDecoration||'').includes('underline');
-      const setPressed=(sel, on)=> sel && sel.setAttribute('aria-pressed', on?'true':'false');
-      setPressed(whichMenu.querySelector('#boldBtn')||whichMenu.querySelector('#boldBtnH'), isBold);
-      setPressed(whichMenu.querySelector('#italicBtn')||whichMenu.querySelector('#italicBtnH'), isIt);
-      setPressed(whichMenu.querySelector('#underlineBtn')||whichMenu.querySelector('#underlineBtnH'), isUl);
+      const setPressed=(id,on)=>{ const el=whichMenu.querySelector(id); if(el) el.setAttribute('aria-pressed', on?'true':'false'); };
+      setPressed('#boldBtn', isBold); setPressed('#italicBtn', isIt); setPressed('#underlineBtn', isUl);
+      setPressed('#boldBtnH', isBold); setPressed('#italicBtnH', isIt); setPressed('#underlineBtnH', isUl);
 
-      // Maj icône d’ouverture d’URL (menu 3)
-      if(whichMenu===menu) syncOpenUrlIcon();
+      // Remplir le champ titre du Menu 3 si concerné
+      if(whichMenu===menu){ titleInput3.value = lbl.textContent || ''; syncOpenUrlIcon(); }
 
       menu.style.display='none'; menuHeart.style.display='none';
       whichMenu.style.display='flex'; whichMenu.setAttribute('aria-hidden','false');
@@ -672,7 +663,7 @@
     function closeMenu(whichMenu){ whichMenu.style.display='none'; whichMenu.setAttribute('aria-hidden','true'); }
     document.addEventListener('click',(e)=>{ if(!menu.contains(e.target)) closeMenu(menu); if(!menuHeart.contains(e.target)) closeMenu(menuHeart); });
     openUrlBtnMenu.addEventListener('pointerdown',e=>e.stopPropagation());
-    openUrlBtnMenu.addEventListener('click',e=>{ e.stopPropagation(); }); // laisser l’ancre gérer l’ouverture
+    openUrlBtnMenu.addEventListener('click',e=>{ e.stopPropagation(); });
 
     function applyColor(hex){ if(!currentNode) return; const v=normalizeHex(hex); if(!v) return; currentNode.style.backgroundColor=v; [colorPicker,colorPicker2,colorPickerH].forEach(el=>{ if(el) el.value=v; }); saveState(); refreshSidebar(); }
     function setFamily(val){ if(!currentNode) return; const l=currentNode.querySelector('.label'); l.style.fontFamily=val; [fontSelect,fontSelect2,fontSelectH].forEach(el=>{ if(el) el.value=val; }); fitLabelToNode(currentNode); saveState(); }
@@ -680,21 +671,20 @@
     function togglePressed(btn){ const newV = btn.getAttribute('aria-pressed')==='true'?'false':'true'; btn.setAttribute('aria-pressed',newV); return newV==='true'; }
 
     // Menu 3 handlers
+    titleInput3.addEventListener('change', ()=>{ if(!currentNode) return; const l=currentNode.querySelector('.label'); l.textContent=titleInput3.value.trim(); fitLabelToNode(currentNode); saveState(); refreshSidebar(); });
+    titleInput3.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); titleInput3.blur(); }});
     menu.addEventListener('click',(e)=>{
       const btn=e.target.closest('button'); if(!btn||!currentNode) return;
       const action=btn.dataset.action;
       if(action==='add'){ addNodeNear(currentNode); closeMenu(menu); return; }
       if(action==='addSmall'){ addNodeNearScaled(currentNode); closeMenu(menu); return; }
-      if(action==='wire'){ startWiring(currentNode); closeMenu(menu); return; }
       if(action==='setUrl'){
         const curr=currentNode.dataset.url||'';
         const val=prompt("Entrez une URL (laisser vide pour supprimer) :", curr);
         if(val===null) return;
         setNodeUrl(currentNode, val);
-        // ne pas fermer le menu pour permettre de cliquer sur ↗
         return;
       }
-      if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); refreshSidebar(); } closeMenu(menu); return; }
     });
     colorPicker.addEventListener('input',(e)=> applyColor(e.target.value));
     fontSelect.addEventListener('change',(e)=> setFamily(e.target.value));
@@ -702,11 +692,11 @@
     boldBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(boldBtn); currentNode.querySelector('.label').style.fontWeight = on?'700':'400'; fitLabelToNode(currentNode); saveState(); });
     italicBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(italicBtn); currentNode.querySelector('.label').style.fontStyle = on?'italic':'normal'; fitLabelToNode(currentNode); saveState(); });
     underlineBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(underlineBtn); currentNode.querySelector('.label').style.textDecoration = on?'underline':'none'; fitLabelToNode(currentNode); saveState(); });
-    iconColorBtn.addEventListener('click',()=>{ colorPicker.focus(); colorPicker.click(); });
+    iconWireBtn.addEventListener('click',()=>{ if(!currentNode) return; startWiring(currentNode); closeMenu(menu); });
     iconCenterBtn.addEventListener('click',()=>{ centerOnCurrent(); closeMenu(menu); });
     iconDeleteBtn.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); refreshSidebar(); closeMenu(menu); });
 
-    // Menu 4 (cœur)
+    // Menu 4 (cœur) – inchangé
     menuHeart.addEventListener('click',(e)=>{
       const btn=e.target.closest('button'); if(!btn||!currentNode) return;
       const action=btn.dataset.action;
@@ -755,9 +745,9 @@
     }
 
     /* Panneau d’actions */
-    actAddPrincipal.addEventListener('click',()=>{ if(!currentNode) return; addNodeNear(currentNode); /* garder ouvert */ });
-    actAddSecondary.addEventListener('click',()=>{ if(!currentNode) return; addNodeNearScaled(currentNode); /* garder ouvert */ });
-    actWire.addEventListener('click',()=>{ if(!currentNode) return; startWiring(currentNode); /* garder ouvert */ });
+    actAddPrincipal.addEventListener('click',()=>{ if(!currentNode) return; addNodeNear(currentNode); });
+    actAddSecondary.addEventListener('click',()=>{ if(!currentNode) return; addNodeNearScaled(currentNode); });
+    actWire.addEventListener('click',()=>{ if(!currentNode) return; startWiring(currentNode); });
     actCenter.addEventListener('click',()=> centerOnCurrent());
     actDelete.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); currentNode=null; enableActionPanel(false); saveState(); showActionsPanel(false); menu2Locked=false; refreshSidebar(); });
 
@@ -775,7 +765,7 @@
     titleInput2.addEventListener('change', applyTitleFromInput);
     titleInput2.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyTitleFromInput(); titleInput2.blur(); } });
 
-    /* Toolbar */
+    /* Export/Import/Reset */
     exportBtn.addEventListener('click',()=>{ const data=buildState(); const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='workspace.json'; a.click(); URL.revokeObjectURL(url); });
     importBtn.addEventListener('click',()=> fileInput.click());
     fileInput.addEventListener('change', async (e)=>{ const f=e.target.files?.[0]; if(!f) return; try{ const text=await f.text(); restoreState(JSON.parse(text)); } catch{ alert('Fichier invalide.'); } finally { fileInput.value=''; } });
@@ -795,7 +785,6 @@
         if(e.button===0 && !wiring.active && !e.target.closest('.node') && !menu.contains(e.target) && !menuHeart.contains(e.target) && !actionsPanel.contains(e.target) && !document.getElementById('sidebar').contains(e.target)){
           world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
           currentNode=null; enableActionPanel(false);
-          // NE PAS fermer le Menu 2 ici (reste ouvert jusqu’au clic sur la croix)
         }
         if(e.button===0 && wiring.active && !e.target.closest('.node')) stopWiring();
       });
