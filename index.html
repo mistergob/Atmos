@@ -21,7 +21,9 @@
     #world{position:absolute;inset:0;transform-origin:0 0;will-change:transform}
 
     /* Fils */
-    #wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    #wires{position:absolute;inset:0;width:100%;height:100%;}
+    #wires line{pointer-events:stroke; cursor:pointer; transition:stroke .12s ease, stroke-width .12s ease}
+    #wires line:hover{stroke:#ef4444; stroke-width:3}
 
     /* Cercles */
     .node{position:absolute;width:110px;height:110px;border-radius:9999px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;text-align:center;padding:10px;box-shadow:0 8px 24px var(--ring);cursor:grab;transition:transform .12s ease,box-shadow .12s ease,filter .12s ease;will-change:transform,left,top}
@@ -33,8 +35,9 @@
     .node.connectable{outline:2px dashed #f59e0b}
     .node .label{pointer-events:none;line-height:1.1;width:100%;max-width:100%;overflow:hidden;word-break:break-word;hyphens:auto}
 
-    /* Menu contextuel générique */
+    /* Menu contextuel générique (Menu 3 / Menu 4) */
     .menu{position:fixed;display:none;flex-direction:column;min-width:260px;background:var(--card);border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.15);overflow:hidden;z-index:50}
+    .menu-body{display:flex;flex-direction:column;gap:0}
     .menu button{appearance:none;background:transparent;border:0;text-align:left;padding:12px 14px;font-size:14px;cursor:pointer}
     .menu button:hover{background:#f3f4f6}
     .menu .row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid #e5e7eb}
@@ -44,6 +47,10 @@
     .menu .toggle-group{display:flex;gap:8px}
     .menu .toggle{padding:6px 10px;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer}
     .menu .toggle[aria-pressed="true"]{background:#111827;color:#fff}
+    .menu-spacer{flex:1 1 auto}
+    .menu-footer{display:flex;gap:8px;justify-content:flex-end;padding:8px 10px;border-top:1px solid #e5e7eb;background:#fafafa}
+    .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.04);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
+    .icon-btn:hover{background:#f3f4f6}
 
     /* Toolbar */
     .toolbar{position:fixed;right:16px;top:16px;display:flex;gap:8px;background:var(--card);border:1px solid #e5e7eb;border-radius:14px;padding:8px;box-shadow:0 8px 24px var(--ring);z-index:60}
@@ -128,78 +135,94 @@
 
   <!-- Menu 3 (générique) -->
   <div id="menu" class="menu" role="menu" aria-hidden="true">
-    <button data-action="add">➕ Cercle principal</button>
-    <button data-action="addSmall">➕ Cercle secondaire</button>
-    <button data-action="wire">🔗 Connecter à…</button>
-    <button data-action="color">🎨 Modifier la couleur</button>
-    <div class="row" aria-label="Sélecteur de couleur">
-      <label for="colorPicker">Couleur</label>
-      <input id="colorPicker" type="color" value="#CC0000" />
-    </div>
-    <div class="row" aria-label="Police">
-      <label for="fontSelect">Police</label>
-      <select id="fontSelect">
-        <option value="system-ui">Système</option>
-        <option value="Arial">Arial</option>
-        <option value="Roboto">Roboto</option>
-        <option value="Georgia">Georgia</option>
-        <option value="'Times New Roman'">Times New Roman</option>
-        <option value="'Courier New'">Courier New</option>
-      </select>
-    </div>
-    <div class="row" aria-label="Taille de police">
-      <label for="fontSizeMax">Taille max</label>
-      <input id="fontSizeMax" type="number" min="6" max="72" step="1" value="32" />
-    </div>
-    <div class="row" aria-label="Style de texte">
-      <label>Style</label>
-      <div class="toggle-group">
-        <button type="button" id="boldBtn" class="toggle" aria-pressed="true">Gras</button>
-        <button type="button" id="italicBtn" class="toggle" aria-pressed="false">Italique</button>
-        <button type="button" id="underlineBtn" class="toggle" aria-pressed="false">Souligné</button>
+    <div class="menu-body">
+      <button data-action="add">➕ Cercle principal</button>
+      <button data-action="addSmall">➕ Cercle secondaire</button>
+      <button data-action="wire">🔗 Connecter à…</button>
+
+      <div class="row" aria-label="Sélecteur de couleur">
+        <label for="colorPicker">Couleur</label>
+        <input id="colorPicker" type="color" value="#CC0000" />
+      </div>
+      <div class="row" aria-label="Police">
+        <label for="fontSelect">Police</label>
+        <select id="fontSelect">
+          <option value="system-ui">Système</option>
+          <option value="Arial">Arial</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Georgia">Georgia</option>
+          <option value="'Times New Roman'">Times New Roman</option>
+          <option value="'Courier New'">Courier New</option>
+        </select>
+      </div>
+      <div class="row" aria-label="Taille de police">
+        <label for="fontSizeMax">Taille max</label>
+        <input id="fontSizeMax" type="number" min="6" max="72" step="1" value="32" />
+      </div>
+      <div class="row" aria-label="Style de texte">
+        <label>Style</label>
+        <div class="toggle-group">
+          <button type="button" id="boldBtn" class="toggle" aria-pressed="true">Gras</button>
+          <button type="button" id="italicBtn" class="toggle" aria-pressed="false">Italique</button>
+          <button type="button" id="underlineBtn" class="toggle" aria-pressed="false">Souligné</button>
+        </div>
+      </div>
+
+      <button data-action="rename">✏️ Renommer le cercle</button>
+
+      <div class="menu-spacer"></div>
+      <div class="menu-footer">
+        <button id="iconColorBtn" class="icon-btn" title="Modifier la couleur" aria-label="Modifier la couleur">🎨</button>
+        <button id="iconCenterBtn" class="icon-btn" title="Centrer sur le cercle" aria-label="Centrer sur le cercle">🎯</button>
+        <button id="iconDeleteBtn" class="icon-btn" title="Supprimer le cercle" aria-label="Supprimer le cercle">🗑️</button>
       </div>
     </div>
-    <button data-action="center">🎯 Centrer sur le cercle</button>
-    <button data-action="rename">✏️ Renommer le cercle</button>
-    <button data-action="delete">🗑️ Supprimer le cercle</button>
   </div>
 
-  <!-- Menu 4 (cœur) : copie du Menu 3 -->
+  <!-- Menu 4 (cœur) : copie du Menu 3 (non modifié par la consigne) -->
   <div id="menuHeart" class="menu" role="menu" aria-hidden="true">
-    <button data-action="add">➕ Cercle principal</button>
-    <button data-action="addSmall">➕ Cercle secondaire</button>
-    <button data-action="wire">🔗 Connecter à…</button>
-    <button data-action="color">🎨 Modifier la couleur</button>
-    <div class="row" aria-label="Sélecteur de couleur">
-      <label for="colorPickerH">Couleur</label>
-      <input id="colorPickerH" type="color" value="#CC0000" />
-    </div>
-    <div class="row" aria-label="Police">
-      <label for="fontSelectH">Police</label>
-      <select id="fontSelectH">
-        <option value="system-ui">Système</option>
-        <option value="Arial">Arial</option>
-        <option value="Roboto">Roboto</option>
-        <option value="Georgia">Georgia</option>
-        <option value="'Times New Roman'">Times New Roman</option>
-        <option value="'Courier New'">Courier New</option>
-      </select>
-    </div>
-    <div class="row" aria-label="Taille de police">
-      <label for="fontSizeMaxH">Taille max</label>
-      <input id="fontSizeMaxH" type="number" min="6" max="72" step="1" value="32" />
-    </div>
-    <div class="row" aria-label="Style de texte">
-      <label>Style</label>
-      <div class="toggle-group">
-        <button type="button" id="boldBtnH" class="toggle" aria-pressed="true">Gras</button>
-        <button type="button" id="italicBtnH" class="toggle" aria-pressed="false">Italique</button>
-        <button type="button" id="underlineBtnH" class="toggle" aria-pressed="false">Souligné</button>
+    <div class="menu-body">
+      <button data-action="add">➕ Cercle principal</button>
+      <button data-action="addSmall">➕ Cercle secondaire</button>
+      <button data-action="wire">🔗 Connecter à…</button>
+
+      <div class="row" aria-label="Sélecteur de couleur">
+        <label for="colorPickerH">Couleur</label>
+        <input id="colorPickerH" type="color" value="#CC0000" />
+      </div>
+      <div class="row" aria-label="Police">
+        <label for="fontSelectH">Police</label>
+        <select id="fontSelectH">
+          <option value="system-ui">Système</option>
+          <option value="Arial">Arial</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Georgia">Georgia</option>
+          <option value="'Times New Roman'">Times New Roman</option>
+          <option value="'Courier New'">Courier New</option>
+        </select>
+      </div>
+      <div class="row" aria-label="Taille de police">
+        <label for="fontSizeMaxH">Taille max</label>
+        <input id="fontSizeMaxH" type="number" min="6" max="72" step="1" value="32" />
+      </div>
+      <div class="row" aria-label="Style de texte">
+        <label>Style</label>
+        <div class="toggle-group">
+          <button type="button" id="boldBtnH" class="toggle" aria-pressed="true">Gras</button>
+          <button type="button" id="italicBtnH" class="toggle" aria-pressed="false">Italique</button>
+          <button type="button" id="underlineBtnH" class="toggle" aria-pressed="false">Souligné</button>
+        </div>
+      </div>
+
+      <button data-action="rename">✏️ Renommer le cercle</button>
+
+      <div class="menu-spacer"></div>
+      <div class="menu-footer">
+        <button id="iconColorBtnH" class="icon-btn" title="Modifier la couleur" aria-label="Modifier la couleur">🎨</button>
+        <button id="iconCenterBtnH" class="icon-btn" title="Centrer sur le cercle" aria-label="Centrer sur le cercle">🎯</button>
+        <button id="iconDeleteBtnH" class="icon-btn" title="Supprimer le cercle" aria-label="Supprimer le cercle">🗑️</button>
       </div>
     </div>
-    <button data-action="center">🎯 Centrer sur le cercle</button>
-    <button data-action="rename">✏️ Renommer le cercle</button>
-    <button data-action="delete">🗑️ Supprimer le cercle</button>
   </div>
 
   <!-- Outils -->
@@ -236,6 +259,9 @@
     const boldBtn = document.getElementById('boldBtn');
     const italicBtn = document.getElementById('italicBtn');
     const underlineBtn = document.getElementById('underlineBtn');
+    const iconColorBtn = document.getElementById('iconColorBtn');
+    const iconCenterBtn = document.getElementById('iconCenterBtn');
+    const iconDeleteBtn = document.getElementById('iconDeleteBtn');
 
     /* Menu 4 controls (coeur) */
     const colorPickerH = document.getElementById('colorPickerH');
@@ -244,6 +270,9 @@
     const boldBtnH = document.getElementById('boldBtnH');
     const italicBtnH = document.getElementById('italicBtnH');
     const underlineBtnH = document.getElementById('underlineBtnH');
+    const iconColorBtnH = document.getElementById('iconColorBtnH');
+    const iconCenterBtnH = document.getElementById('iconCenterBtnH');
+    const iconDeleteBtnH = document.getElementById('iconDeleteBtnH');
 
     /* Menus 1/2 */
     const principalList = document.getElementById('principalList');
@@ -299,7 +328,22 @@
     function updateLinesFor(el){ const id=el.dataset.id; qLines().forEach(l=>{ if(l.dataset.from===id||l.dataset.to===id) updateLineEnds(l); }); }
     function updateAllLines(){ qLines().forEach(updateLineEnds); }
     function findLine(aId,bId){ for(const l of qLines()){ if((l.dataset.from===aId&&l.dataset.to===bId)||(l.dataset.from===bId&&l.dataset.to===aId)) return l; } return null; }
-    function createLine(fromEl,toEl){ const line=document.createElementNS('http://www.w3.org/2000/svg','line'); line.setAttribute('stroke','#111827'); line.setAttribute('stroke-width','2'); line.setAttribute('stroke-linecap','round'); line.dataset.from=fromEl.dataset.id; line.dataset.to=toEl.dataset.id; svg.appendChild(line); updateLineEnds(line); return line; }
+    function attachLineEvents(line){
+      line.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        if(confirm('Supprimer cette connexion ?')){
+          line.remove();
+          saveState();
+          refreshSidebar();
+        }
+      });
+    }
+    function createLine(fromEl,toEl){
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('stroke','#111827'); line.setAttribute('stroke-width','2'); line.setAttribute('stroke-linecap','round');
+      line.dataset.from=fromEl.dataset.id; line.dataset.to=toEl.dataset.id;
+      svg.appendChild(line); updateLineEnds(line); attachLineEvents(line); return line;
+    }
 
     /* Label autosize */
     function fitLabelToNode(node){
@@ -384,7 +428,6 @@
       return ids.map(id=>world.querySelector(`[data-id="${id}"]`)).filter(Boolean).filter(isSecondaryNode);
     }
     function secondariesUniqueToPrincipal(principalEl){
-      // Secondaires reliés exactement à 1 principal (celui-ci)
       return secondariesOfPrincipal(principalEl).filter(sec => principalNeighborsOf(sec).length === 1);
     }
     function nearestPrincipal(toNode){
@@ -403,7 +446,6 @@
       updateLinesFor(sec);
     }
     function ensureEdgeExists(a,b){
-      // Ne supprime plus aucun lien existant : multi-connexions autorisées
       if(!findLine(a.dataset.id,b.dataset.id)) createLine(a,b);
     }
 
@@ -413,7 +455,6 @@
 
       node.addEventListener('pointerdown',(e)=>{
         if(e.button!==0) return; // drag uniquement clic gauche
-        // Mode câblage: sélection/connexion au lieu de drag
         if(wiring.active){
           e.preventDefault(); e.stopPropagation();
           if(!wiring.source){
@@ -424,7 +465,6 @@
           }
           return;
         }
-
         setCurrentNode(node,{fromMenu1:false});
         closeMenu(menu); closeMenu(menuHeart);
         node.setPointerCapture(e.pointerId);
@@ -452,7 +492,6 @@
         updateLinesFor(node);
         fitLabelToNode(node);
 
-        // Déplacement groupé : seulement secondaires à 1 principal (ce node)
         if(isPrincipalNode(node) && (dx!==0 || dy!==0)){
           secondariesUniqueToPrincipal(node).forEach(sec=>{
             sec.style.left = ((parseFloat(sec.style.left)||0) + dx) + 'px';
@@ -461,7 +500,6 @@
           });
         }
 
-        // Indice d'accroche pour un secondaire en drag
         if(isSecondaryNode(node)){
           const {node:pri, dist} = nearestPrincipal(node);
           if(snapHint && snapHint!==pri) snapHint.classList.remove('snap-target');
@@ -479,7 +517,7 @@
           const {node:pri, dist} = nearestPrincipal(node);
           if(pri && dist <= SNAP_RANGE){
             snapSecondaryToPrincipal(node, pri);
-            ensureEdgeExists(pri, node); // ajoute sans supprimer les autres
+            ensureEdgeExists(pri, node);
           }
           if(snapHint){ snapHint.classList.remove('snap-target'); snapHint=null; }
         }
@@ -523,7 +561,6 @@
     function openMenuAt(whichMenu, event, node){
       if(!event){ whichMenu.style.display='none'; whichMenu.setAttribute('aria-hidden','true'); return; }
       setCurrentNode(node,{fromMenu1:false});
-      // sync
       const hex=toHex(getComputedStyle(currentNode).backgroundColor)||'#CC0000';
       (whichMenu.querySelector('input[type="color"]')||{}).value = hex;
       const lbl=currentNode.querySelector('.label');
@@ -538,7 +575,6 @@
       setPressed(whichMenu.querySelector('#italicBtn')||whichMenu.querySelector('#italicBtnH'), isIt);
       setPressed(whichMenu.querySelector('#underlineBtn')||whichMenu.querySelector('#underlineBtnH'), isUl);
 
-      // position
       menu.style.display='none'; menuHeart.style.display='none';
       whichMenu.style.display='flex'; whichMenu.setAttribute('aria-hidden','false');
       const mRect=whichMenu.getBoundingClientRect(); const vw=innerWidth,vh=innerHeight; const x=Math.min(event.clientX,vw-mRect.width-8); const y=Math.min(event.clientY,vh-mRect.height-8); whichMenu.style.left=x+'px'; whichMenu.style.top=y+'px'; event.stopPropagation();
@@ -558,10 +594,7 @@
       if(action==='add'){ addNodeNear(currentNode); closeMenu(menu); return; }
       if(action==='addSmall'){ addNodeNearScaled(currentNode); closeMenu(menu); return; }
       if(action==='wire'){ startWiring(currentNode); closeMenu(menu); return; }
-      if(action==='color'){ colorPicker.focus(); colorPicker.click(); return; }
-      if(action==='center'){ centerOnCurrent(); closeMenu(menu); return; }
       if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); refreshSidebar(); } closeMenu(menu); return; }
-      if(action==='delete'){ if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); } else { qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); refreshSidebar(); } closeMenu(menu); return; }
     });
     colorPicker.addEventListener('input',(e)=> applyColor(e.target.value));
     fontSelect.addEventListener('change',(e)=> setFamily(e.target.value));
@@ -569,18 +602,19 @@
     boldBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(boldBtn); currentNode.querySelector('.label').style.fontWeight = on?'700':'400'; fitLabelToNode(currentNode); saveState(); });
     italicBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(italicBtn); currentNode.querySelector('.label').style.fontStyle = on?'italic':'normal'; fitLabelToNode(currentNode); saveState(); });
     underlineBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(underlineBtn); currentNode.querySelector('.label').style.textDecoration = on?'underline':'none'; fitLabelToNode(currentNode); saveState(); });
+    // Icônes bas de Menu 3
+    iconColorBtn.addEventListener('click',()=>{ colorPicker.focus(); colorPicker.click(); });
+    iconCenterBtn.addEventListener('click',()=>{ centerOnCurrent(); closeMenu(menu); });
+    iconDeleteBtn.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); refreshSidebar(); closeMenu(menu); });
 
-    // Menu 4 (cœur) handlers
+    // Menu 4 (cœur) handlers (icônes identiques en bas)
     menuHeart.addEventListener('click',(e)=>{
       const btn=e.target.closest('button'); if(!btn||!currentNode) return;
       const action=btn.dataset.action;
       if(action==='add'){ addNodeNear(currentNode); closeMenu(menuHeart); return; }
       if(action==='addSmall'){ addNodeNearScaled(currentNode); closeMenu(menuHeart); return; }
       if(action==='wire'){ startWiring(currentNode); closeMenu(menuHeart); return; }
-      if(action==='color'){ colorPickerH.focus(); colorPickerH.click(); return; }
-      if(action==='center'){ centerOnCurrent(); closeMenu(menuHeart); return; }
       if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); refreshSidebar(); } closeMenu(menuHeart); return; }
-      if(action==='delete'){ if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); } else { qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); refreshSidebar(); } closeMenu(menuHeart); return; }
     });
     colorPickerH.addEventListener('input',(e)=> applyColor(e.target.value));
     fontSelectH.addEventListener('change',(e)=> setFamily(e.target.value));
@@ -588,6 +622,10 @@
     boldBtnH.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(boldBtnH); currentNode.querySelector('.label').style.fontWeight = on?'700':'400'; fitLabelToNode(currentNode); saveState(); });
     italicBtnH.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(italicBtnH); currentNode.querySelector('.label').style.fontStyle = on?'italic':'normal'; fitLabelToNode(currentNode); saveState(); });
     underlineBtnH.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(underlineBtnH); currentNode.querySelector('.label').style.textDecoration = on?'underline':'none'; fitLabelToNode(currentNode); saveState(); });
+    // Icônes bas de Menu 4
+    iconColorBtnH.addEventListener('click',()=>{ colorPickerH.focus(); colorPickerH.click(); });
+    iconCenterBtnH.addEventListener('click',()=>{ centerOnCurrent(); closeMenu(menuHeart); });
+    iconDeleteBtnH.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); refreshSidebar(); closeMenu(menuHeart); });
 
     /* Menu 1 (principaux + secondaires) */
     function stylePrincipalButtonFromNode(btn, node){
@@ -649,19 +687,17 @@
     (function setupStagePan(){
       let panActive=false, lastX=0,lastY=0;
       stage.addEventListener('pointerdown',(e)=>{
-        if(e.button===1){ // bouton milieu
+        if(e.button===1){
           e.preventDefault();
           panActive=true; stage.classList.add('panning');
           lastX=e.clientX; lastY=e.clientY;
           stage.setPointerCapture?.(e.pointerId);
           return;
         }
-        // clic gauche sur fond (pas de câblage) → désélection
         if(e.button===0 && !wiring.active && !e.target.closest('.node') && !menu.contains(e.target) && !menuHeart.contains(e.target) && !actionsPanel.contains(e.target) && !document.getElementById('sidebar').contains(e.target)){
           world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
           currentNode=null; enableActionPanel(false); showActionsPanel(false);
         }
-        // clic gauche sur fond en câblage → annule
         if(e.button===0 && wiring.active && !e.target.closest('.node')) stopWiring();
       });
       stage.addEventListener('pointermove',(e)=>{
@@ -775,7 +811,7 @@
       });
       if(!byId['node-0']){ mainNode.dataset.id='node-0'; mainNode.querySelector('.label').textContent='Cercle principal'; byId['node-0']=mainNode; }
       enableDrag(mainNode); fitLabelToNode(mainNode);
-      (data?.edges||[]).forEach(e=>{ if(byId[e.from]&&byId[e.to]) createLine(byId[e.from],byId[e.to]); });
+      (data?.edges||[]).forEach(e=>{ if(byId[e.from]&&byId[e.to]) attachLineEvents(createLine(byId[e.from],byId[e.to])); });
       updateAllLines(); refreshSidebar(); saveState(); showActionsPanel(false);
     }
 
