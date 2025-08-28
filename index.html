@@ -368,16 +368,24 @@
     function centerOnCurrent(){ if(currentNode) centerOnNode(currentNode); }
     homeBtn.addEventListener('click',()=> centerOnNode(mainNode));
 
-    /* Déplacement & snap */
+    /* Graphe & déplacement */
     function isPrincipalNode(n){ const w=parseFloat(getComputedStyle(n).width)||0; return approxEq(w,BIG_SIZE); }
     function isSecondaryNode(n){ const w=parseFloat(getComputedStyle(n).width)||0; return approxEq(w,SMALL_SIZE); }
     function neighborsOf(id){
       const res=[]; qLines().forEach(l=>{ if(l.dataset.from===id) res.push(l.dataset.to); else if(l.dataset.to===id) res.push(l.dataset.from); });
       return Array.from(new Set(res));
     }
+    function principalNeighborsOf(nodeEl){
+      const ids = neighborsOf(nodeEl.dataset.id);
+      return ids.map(id=>world.querySelector(`[data-id="${id}"]`)).filter(Boolean).filter(isPrincipalNode);
+    }
     function secondariesOfPrincipal(principalEl){
       const ids = neighborsOf(principalEl.dataset.id);
       return ids.map(id=>world.querySelector(`[data-id="${id}"]`)).filter(Boolean).filter(isSecondaryNode);
+    }
+    function secondariesUniqueToPrincipal(principalEl){
+      // Secondaires reliés exactement à 1 principal (celui-ci)
+      return secondariesOfPrincipal(principalEl).filter(sec => principalNeighborsOf(sec).length === 1);
     }
     function nearestPrincipal(toNode){
       const sC=centerInWorld(toNode); let best=null,bestDist=Infinity;
@@ -394,16 +402,9 @@
       sec.style.top  = (cy - sH/2) + 'px';
       updateLinesFor(sec);
     }
-    function ensureSinglePrincipalEdge(sec, principal){
-      const sid=sec.dataset.id, pid=principal.dataset.id;
-      qLines().forEach(l=>{
-        if(l.dataset.from===sid||l.dataset.to===sid){
-          const otherId = l.dataset.from===sid ? l.dataset.to : l.dataset.from;
-          const otherEl = world.querySelector(`[data-id="${otherId}"]`);
-          if(otherEl && isPrincipalNode(otherEl) && otherId!==pid) l.remove();
-        }
-      });
-      if(!findLine(sid,pid)) createLine(principal,sec);
+    function ensureEdgeExists(a,b){
+      // Ne supprime plus aucun lien existant : multi-connexions autorisées
+      if(!findLine(a.dataset.id,b.dataset.id)) createLine(a,b);
     }
 
     function enableDrag(node){
@@ -412,14 +413,14 @@
 
       node.addEventListener('pointerdown',(e)=>{
         if(e.button!==0) return; // drag uniquement clic gauche
-        // Si mode câblage actif → sélection source/connexion, pas de drag.
+        // Mode câblage: sélection/connexion au lieu de drag
         if(wiring.active){
           e.preventDefault(); e.stopPropagation();
           if(!wiring.source){
             setCurrentNode(node,{fromMenu1:false});
-            startWiring(node); // définit la source et crée la ligne fantôme
+            startWiring(node);
           }else{
-            attemptConnect(node); // essaie de relier source → node
+            attemptConnect(node);
           }
           return;
         }
@@ -440,7 +441,7 @@
         const sr=stageRect();
         const worldX = (ev.clientX - sr.left - camera.x)/camera.z;
         const worldY = (ev.clientY - sr.top  - camera.y)/camera.z;
-        const newLeft = worldX - offsetXw;   // déplacement libre (peut devenir négatif)
+        const newLeft = worldX - offsetXw;   // libre (négatif autorisé)
         const newTop  = worldY - offsetYw;
 
         const dx = newLeft - prevLeft;
@@ -451,9 +452,9 @@
         updateLinesFor(node);
         fitLabelToNode(node);
 
-        // Si principal → faire suivre ses secondaires
+        // Déplacement groupé : seulement secondaires à 1 principal (ce node)
         if(isPrincipalNode(node) && (dx!==0 || dy!==0)){
-          secondariesOfPrincipal(node).forEach(sec=>{
+          secondariesUniqueToPrincipal(node).forEach(sec=>{
             sec.style.left = ((parseFloat(sec.style.left)||0) + dx) + 'px';
             sec.style.top  = ((parseFloat(sec.style.top)||0) + dy) + 'px';
             updateLinesFor(sec);
@@ -476,7 +477,10 @@
         dragging=false; node.releasePointerCapture(e.pointerId);
         if(isSecondaryNode(node)){
           const {node:pri, dist} = nearestPrincipal(node);
-          if(pri && dist <= SNAP_RANGE){ snapSecondaryToPrincipal(node, pri); ensureSinglePrincipalEdge(node, pri); }
+          if(pri && dist <= SNAP_RANGE){
+            snapSecondaryToPrincipal(node, pri);
+            ensureEdgeExists(pri, node); // ajoute sans supprimer les autres
+          }
           if(snapHint){ snapHint.classList.remove('snap-target'); snapHint=null; }
         }
         saveState();
@@ -542,7 +546,7 @@
     function closeMenu(whichMenu){ whichMenu.style.display='none'; whichMenu.setAttribute('aria-hidden','true'); }
     document.addEventListener('click',(e)=>{ if(!menu.contains(e.target)) closeMenu(menu); if(!menuHeart.contains(e.target)) closeMenu(menuHeart); });
 
-    function applyColor(hex){ if(!currentNode) return; const v=normalizeHex(hex); if(!v) return; currentNode.style.backgroundColor=v; [colorPicker,colorPicker2,colorPickerH].forEach(el=>{ if(el) el.value=v; }); saveState(); }
+    function applyColor(hex){ if(!currentNode) return; const v=normalizeHex(hex); if(!v) return; currentNode.style.backgroundColor=v; [colorPicker,colorPicker2,colorPickerH].forEach(el=>{ if(el) el.value=v; }); saveState(); refreshSidebar(); }
     function setFamily(val){ if(!currentNode) return; const l=currentNode.querySelector('.label'); l.style.fontFamily=val; [fontSelect,fontSelect2,fontSelectH].forEach(el=>{ if(el) el.value=val; }); fitLabelToNode(currentNode); saveState(); }
     function setMax(v){ if(!currentNode) return; const min=6,max=72,val=Math.max(min,Math.min(max,parseFloat(v)||min)); currentNode.dataset.maxFont=String(val); [fontSizeMax,fontSizeMax2,fontSizeMaxH].forEach(el=>{ if(el) el.value=val; }); fitLabelToNode(currentNode); saveState(); }
     function togglePressed(btn){ const newV = btn.getAttribute('aria-pressed')==='true'?'false':'true'; btn.setAttribute('aria-pressed',newV); return newV==='true'; }
@@ -556,8 +560,8 @@
       if(action==='wire'){ startWiring(currentNode); closeMenu(menu); return; }
       if(action==='color'){ colorPicker.focus(); colorPicker.click(); return; }
       if(action==='center'){ centerOnCurrent(); closeMenu(menu); return; }
-      if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); } closeMenu(menu); return; }
-      if(action==='delete'){ if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); } else { qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); } closeMenu(menu); return; }
+      if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); refreshSidebar(); } closeMenu(menu); return; }
+      if(action==='delete'){ if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); } else { qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); refreshSidebar(); } closeMenu(menu); return; }
     });
     colorPicker.addEventListener('input',(e)=> applyColor(e.target.value));
     fontSelect.addEventListener('change',(e)=> setFamily(e.target.value));
@@ -575,8 +579,8 @@
       if(action==='wire'){ startWiring(currentNode); closeMenu(menuHeart); return; }
       if(action==='color'){ colorPickerH.focus(); colorPickerH.click(); return; }
       if(action==='center'){ centerOnCurrent(); closeMenu(menuHeart); return; }
-      if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); } closeMenu(menuHeart); return; }
-      if(action==='delete'){ if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); } else { qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); } closeMenu(menuHeart); return; }
+      if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); refreshSidebar(); } closeMenu(menuHeart); return; }
+      if(action==='delete'){ if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); } else { qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); refreshSidebar(); } closeMenu(menuHeart); return; }
     });
     colorPickerH.addEventListener('input',(e)=> applyColor(e.target.value));
     fontSelectH.addEventListener('change',(e)=> setFamily(e.target.value));
@@ -619,7 +623,7 @@
     actAddSecondary.addEventListener('click',()=>{ if(!currentNode) return; addNodeNearScaled(currentNode); });
     actWire.addEventListener('click',()=>{ if(!currentNode) return; startWiring(currentNode); });
     actCenter.addEventListener('click',()=> centerOnCurrent());
-    actDelete.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); currentNode=null; enableActionPanel(false); saveState(); showActionsPanel(false); });
+    actDelete.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); currentNode=null; enableActionPanel(false); saveState(); showActionsPanel(false); refreshSidebar(); });
 
     // Titre direct (Menu 2)
     function applyTitleFromInput(){
@@ -639,7 +643,7 @@
     exportBtn.addEventListener('click',()=>{ const data=buildState(); const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='workspace.json'; a.click(); URL.revokeObjectURL(url); });
     importBtn.addEventListener('click',()=> fileInput.click());
     fileInput.addEventListener('change', async (e)=>{ const f=e.target.files?.[0]; if(!f) return; try{ const text=await f.text(); restoreState(JSON.parse(text)); } catch{ alert('Fichier invalide.'); } finally { fileInput.value=''; } });
-    resetBtn.addEventListener('click',()=>{ if(!confirm("Réinitialiser l'espace de travail ?")) return; localStorage.removeItem('workspaceState'); qLines().forEach(l=>l.remove()); world.querySelectorAll('.node').forEach(n=>{ if(n!==mainNode) n.remove(); }); mainNode.style.left='calc(50% - 55px)'; mainNode.style.top='calc(50% - 55px)'; mainNode.querySelector('.label').textContent='Cercle principal'; mainNode.style.backgroundColor='var(--primary)'; idCounter=1; camera.x=camera.y=0; camera.z=1; applyCamera(); saveState(); updateAllLines(); fitLabelToNode(mainNode); showActionsPanel(false); });
+    resetBtn.addEventListener('click',()=>{ if(!confirm("Réinitialiser l'espace de travail ?")) return; localStorage.removeItem('workspaceState'); qLines().forEach(l=>l.remove()); world.querySelectorAll('.node').forEach(n=>{ if(n!==mainNode) n.remove(); }); mainNode.style.left='calc(50% - 55px)'; mainNode.style.top='calc(50% - 55px)'; mainNode.querySelector('.label').textContent='Cercle principal'; mainNode.style.backgroundColor='var(--primary)'; idCounter=1; camera.x=camera.y=0; camera.z=1; applyCamera(); saveState(); updateAllLines(); fitLabelToNode(mainNode); showActionsPanel(false); refreshSidebar(); });
 
     /* Pan au bouton milieu (clic roulette) + désélection */
     (function setupStagePan(){
@@ -695,17 +699,14 @@
 
     /* ====== Mode CÂBLAGE ====== */
     function startWiring(source){
-      // active si besoin
       if(!wiring.active){ wiring.active=true; wireModeBtn.classList.add('active'); }
       wiring.source = source;
-      // ghost
       if(wiring.ghost) wiring.ghost.remove();
       const c = centerInWorld(source);
       const line=document.createElementNS('http://www.w3.org/2000/svg','line');
       line.setAttribute('stroke','#2563eb'); line.setAttribute('stroke-width','2'); line.setAttribute('stroke-linecap','round'); line.setAttribute('stroke-dasharray','6 6');
       line.setAttribute('x1', c.x); line.setAttribute('y1', c.y); line.setAttribute('x2', c.x); line.setAttribute('y2', c.y);
       svg.appendChild(line); wiring.ghost=line;
-      // highlight
       world.querySelectorAll('.node').forEach(n=>{ if(n===source){ n.classList.add('wire-source'); } else { n.classList.add('connectable'); } });
     }
     function stopWiring(){
@@ -716,17 +717,9 @@
       world.querySelectorAll('.node.connectable').forEach(n=>n.classList.remove('connectable'));
     }
     function attemptConnect(target){
-      if(!wiring.source || target===wiring.source){ // invalide
-        stopWiring(); return;
-      }
+      if(!wiring.source || target===wiring.source){ stopWiring(); return; }
       const a=wiring.source, b=target;
-      if(findLine(a.dataset.id,b.dataset.id)){ // déjà reliés
-        stopWiring(); return;
-      }
-      createLine(a,b);
-      // re-parenting S→P
-      if(isSecondaryNode(a) && isPrincipalNode(b)) ensureSinglePrincipalEdge(a,b);
-      if(isSecondaryNode(b) && isPrincipalNode(a)) ensureSinglePrincipalEdge(b,a);
+      if(!findLine(a.dataset.id,b.dataset.id)) createLine(a,b);
       saveState(); refreshSidebar();
       stopWiring();
     }
@@ -734,10 +727,10 @@
     // Bouton toolbar & clavier
     wireModeBtn.addEventListener('click',()=>{
       if(wiring.active) stopWiring();
-      else { wiring.active=true; wireModeBtn.classList.add('active'); /* la 1re sélection se fait au clic gauche sur un cercle */ }
+      else { wiring.active=true; wireModeBtn.classList.add('active'); }
     });
     document.addEventListener('keydown',(e)=>{
-      if(e.key==='c' || e.key==='C'){ // toggle
+      if(e.key==='c' || e.key==='C'){
         if(wiring.active) stopWiring(); else { wiring.active=true; wireModeBtn.classList.add('active'); }
       }
       if(e.key==='Escape'){ if(wiring.active) stopWiring(); closeMenu(menu); closeMenu(menuHeart); }
