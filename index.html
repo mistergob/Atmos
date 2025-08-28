@@ -33,9 +33,24 @@
     .node.snap-target{outline:3px dashed #10b981}
     .node.wire-source{outline:3px solid #f59e0b}
     .node.connectable{outline:2px dashed #f59e0b}
-    .node .label{pointer-events:none;line-height:1.1;width:100%;max-width:100%;overflow:hidden;word-break:break-word;hyphens:auto}
+    .node .label{
+      pointer-events:none;line-height:1.1;width:100%;max-width:100%;overflow:hidden;word-break:break-word;hyphens:auto;
+      /* Contour noir du texte */
+      text-shadow:
+        -1px -1px 0 #000,
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
+    }
+    /* Icône URL attachée au nœud */
+    .url-badge{
+      position:absolute; right:-6px; bottom:-6px; width:22px; height:22px; border-radius:9999px;
+      border:1px solid #e5e7eb; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.08);
+      display:flex; align-items:center; justify-content:center; font-size:12px; color:#111827; text-decoration:none;
+    }
+    .url-badge:hover{background:#f3f4f6}
 
-    /* Menu contextuel générique (Menu 3 / Menu 4) */
+    /* Menus contextuels (Menu 3 / Menu 4) */
     .menu{position:fixed;display:none;flex-direction:column;min-width:260px;background:var(--card);border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.15);overflow:hidden;z-index:50}
     .menu-body{display:flex;flex-direction:column;gap:0}
     .menu button{appearance:none;background:transparent;border:0;text-align:left;padding:12px 14px;font-size:14px;cursor:pointer}
@@ -61,14 +76,16 @@
 
     /* Menus 1 & 2 */
     .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--card);border-right:1px solid #e5e7eb;box-shadow:0 8px 24px var(--ring);padding:12px;overflow:auto;z-index:70}
-    .sidebar2{left:var(--sidebar-w);width:var(--sidebar2-w);display:none}
+    .sidebar2{left:var(--sidebar-w);width:var(--sidebar2-w);display:none;position:relative}
     .side-item{width:100%;text-align:left;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#111827;color:#fff;font-weight:700;cursor:pointer;margin-bottom:8px;transition:filter .12s ease}
     .side-item:hover{filter:brightness(1.05)}
     .child-list{list-style:none;padding-left:10px;margin:6px 0 12px}
     .child-list li{padding:6px 8px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;margin-bottom:6px;font-size:13px;cursor:pointer}
     .child-list li:hover{background:#f3f4f6}
+    /* Croix fermeture Menu 2 */
+    #closeMenu2{position:absolute; top:8px; right:8px; width:26px; height:26px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-weight:700}
 
-    /* Raccourci recentrage coeur */
+    /* Raccourci recentrage cœur */
     .home-btn{position:fixed;right:16px;bottom:16px;width:44px;height:44px;border-radius:9999px;border:1px solid #e5e7eb;background:#fff;box-shadow:0 8px 24px var(--ring);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;z-index:65}
 
     /* Pulse */
@@ -84,6 +101,7 @@
 
   <!-- Menu 2 (visible uniquement après sélection via Menu 1) -->
   <aside id="actions" class="sidebar sidebar2" aria-label="Actions du cercle">
+    <button id="closeMenu2" title="Fermer">×</button>
     <div id="selectedInfo" style="font-size:12px;color:var(--muted);margin:0 0 8px;">Aucun cercle sélectionné</div>
     <div class="row" aria-label="Titre (panneau)">
       <label for="titleInput2">Titre</label>
@@ -139,6 +157,7 @@
       <button data-action="add">➕ Cercle principal</button>
       <button data-action="addSmall">➕ Cercle secondaire</button>
       <button data-action="wire">🔗 Connecter à…</button>
+      <button data-action="setUrl">🔗 Lier une URL…</button>
 
       <div class="row" aria-label="Sélecteur de couleur">
         <label for="colorPicker">Couleur</label>
@@ -179,7 +198,7 @@
     </div>
   </div>
 
-  <!-- Menu 4 (cœur) : copie du Menu 3 (non modifié par la consigne) -->
+  <!-- Menu 4 (cœur) -->
   <div id="menuHeart" class="menu" role="menu" aria-hidden="true">
     <div class="menu-body">
       <button data-action="add">➕ Cercle principal</button>
@@ -290,10 +309,12 @@
     const boldBtn2 = document.getElementById('boldBtn2');
     const italicBtn2 = document.getElementById('italicBtn2');
     const underlineBtn2 = document.getElementById('underlineBtn2');
+    const closeMenu2Btn = document.getElementById('closeMenu2');
 
     /* State */
     let currentNode = null;
     let idCounter = 1;
+    let menu2Locked = false; // ouvert uniquement via Menu 1, puis reste tant qu'on ne le ferme pas
     const camera = { x: 0, y: 0, z: 1 };
     const BIG_SIZE = 110, SMALL_SIZE = 55;
     const SNAP_GAP = 12, SNAP_RANGE = 120;
@@ -338,14 +359,27 @@
         }
       });
     }
+    function isPrincipalNode(n){ const w=parseFloat(getComputedStyle(n).width)||0; return approxEq(w,BIG_SIZE); }
+    function isSecondaryNode(n){ const w=parseFloat(getComputedStyle(n).width)||0; return approxEq(w,SMALL_SIZE); }
+    function styleLineByNodes(line){
+      const a = world.querySelector(`[data-id="${line.dataset.from}"]`);
+      const b = world.querySelector(`[data-id="${line.dataset.to}"]`);
+      if(a && b && isSecondaryNode(a) && isSecondaryNode(b)){
+        line.setAttribute('stroke', '#d1d5db');       // gris clair
+        line.setAttribute('stroke-dasharray', '6 6'); // pointillé
+      }else{
+        line.setAttribute('stroke', '#111827');       // sombre
+        line.removeAttribute('stroke-dasharray');     // plein
+      }
+    }
     function createLine(fromEl,toEl){
       const line=document.createElementNS('http://www.w3.org/2000/svg','line');
       line.setAttribute('stroke','#111827'); line.setAttribute('stroke-width','2'); line.setAttribute('stroke-linecap','round');
       line.dataset.from=fromEl.dataset.id; line.dataset.to=toEl.dataset.id;
-      svg.appendChild(line); updateLineEnds(line); attachLineEvents(line); return line;
+      svg.appendChild(line); styleLineByNodes(line); updateLineEnds(line); attachLineEvents(line); return line;
     }
 
-    /* Label autosize */
+    /* Labels */
     function fitLabelToNode(node){
       const label=node.querySelector('.label'); if(!label) return;
       label.style.width='100%'; label.style.maxWidth='100%'; label.style.whiteSpace='normal'; label.style.overflow='hidden'; label.style.wordBreak='break-word';
@@ -391,12 +425,14 @@
       [italicBtn,italicBtn2,italicBtnH].forEach(b=>b.setAttribute('aria-pressed', isItalic?'true':'false'));
       [underlineBtn,underlineBtn2,underlineBtnH].forEach(b=>b.setAttribute('aria-pressed', isUnderline?'true':'false'));
     }
-    function setCurrentNode(node,{fromMenu1=false}={}){
+    function setCurrentNode(node,{fromMenu1=false,preserveMenu2=false,closeMenu2=false}={}){
       world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
       currentNode=node||null;
       if(currentNode) currentNode.classList.add('selected');
       syncActionPanel();
-      showActionsPanel(fromMenu1); // Menu 2 strict
+      if(fromMenu1){ menu2Locked=true; showActionsPanel(true); }
+      else if(closeMenu2){ menu2Locked=false; showActionsPanel(false); }
+      else if(!preserveMenu2 && !menu2Locked){ showActionsPanel(false); }
     }
 
     /* Caméra */
@@ -411,10 +447,9 @@
     }
     function centerOnCurrent(){ if(currentNode) centerOnNode(currentNode); }
     homeBtn.addEventListener('click',()=> centerOnNode(mainNode));
+    closeMenu2Btn.addEventListener('click', ()=>{ menu2Locked=false; showActionsPanel(false); });
 
     /* Graphe & déplacement */
-    function isPrincipalNode(n){ const w=parseFloat(getComputedStyle(n).width)||0; return approxEq(w,BIG_SIZE); }
-    function isSecondaryNode(n){ const w=parseFloat(getComputedStyle(n).width)||0; return approxEq(w,SMALL_SIZE); }
     function neighborsOf(id){
       const res=[]; qLines().forEach(l=>{ if(l.dataset.from===id) res.push(l.dataset.to); else if(l.dataset.to===id) res.push(l.dataset.from); });
       return Array.from(new Set(res));
@@ -449,6 +484,34 @@
       if(!findLine(a.dataset.id,b.dataset.id)) createLine(a,b);
     }
 
+    /* URL badge */
+    function updateUrlBadge(node){
+      const old = node.querySelector('.url-badge');
+      if(old) old.remove();
+      const url = node.dataset.url;
+      if(!url) return;
+      const a = document.createElement('a');
+      a.className = 'url-badge';
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.title = 'Ouvrir le lien';
+      a.textContent = '🔗';
+      a.addEventListener('pointerdown', e=>{ e.stopPropagation(); });
+      a.addEventListener('click', e=>{ e.stopPropagation(); });
+      node.appendChild(a);
+    }
+    function setNodeUrl(node, raw){
+      const v = (raw||'').trim();
+      if(!v){ delete node.dataset.url; updateUrlBadge(node); saveState(); return; }
+      let url = v;
+      if(!/^https?:\/\//i.test(url)) url = 'https://' + url; // ajout schéma simple
+      try{ new URL(url); }catch{ alert('URL invalide.'); return; }
+      node.dataset.url = url;
+      updateUrlBadge(node);
+      saveState();
+    }
+
     function enableDrag(node){
       if(node._dragEnabled) return;
       let offsetXw=0, offsetYw=0, dragging=false, prevLeft=0, prevTop=0;
@@ -458,14 +521,14 @@
         if(wiring.active){
           e.preventDefault(); e.stopPropagation();
           if(!wiring.source){
-            setCurrentNode(node,{fromMenu1:false});
+            setCurrentNode(node,{closeMenu2:true}); // sélection via zone schéma => Menu 2 ne s’ouvre pas / se ferme
             startWiring(node);
           }else{
             attemptConnect(node);
           }
           return;
         }
-        setCurrentNode(node,{fromMenu1:false});
+        setCurrentNode(node,{closeMenu2:true}); // sélection via zone schéma => fermer menu 2
         closeMenu(menu); closeMenu(menuHeart);
         node.setPointerCapture(e.pointerId);
         const rect=node.getBoundingClientRect();
@@ -531,6 +594,7 @@
       });
 
       node._dragEnabled=true;
+      updateUrlBadge(node);
     }
 
     /* Ajout cercles */
@@ -543,7 +607,7 @@
       const node=document.createElement('div'); node.className='node'; node.dataset.id=`node-${idCounter++}`;
       Object.assign(node.style,{left:left+'px',top:top+'px',width:BIG_SIZE+'px',height:BIG_SIZE+'px',backgroundColor: toHex(getComputedStyle(target).backgroundColor) || '#CC0000'});
       node.innerHTML='<span class="label">Cercle principal</span>';
-      world.appendChild(node); enableDrag(node); fitLabelToNode(node); createLine(target,node); setCurrentNode(node,{fromMenu1:false}); saveState(); return node;
+      world.appendChild(node); enableDrag(node); fitLabelToNode(node); createLine(target,node); setCurrentNode(node,{preserveMenu2:true}); saveState(); return node;
     }
     function addNodeNearScaled(target){
       const sr=stageRect();
@@ -554,13 +618,13 @@
       const node=document.createElement('div'); node.className='node'; node.dataset.id=`node-${idCounter++}`;
       Object.assign(node.style,{left:left+'px',top:top+'px',width:SMALL_SIZE+'px',height:SMALL_SIZE+'px',backgroundColor: toHex(getComputedStyle(target).backgroundColor) || '#CC0000'});
       node.innerHTML='<span class="label">Cercle secondaire</span>';
-      world.appendChild(node); enableDrag(node); fitLabelToNode(node); createLine(target,node); setCurrentNode(node,{fromMenu1:false}); saveState(); return node;
+      world.appendChild(node); enableDrag(node); fitLabelToNode(node); createLine(target,node); setCurrentNode(node,{preserveMenu2:true}); saveState(); return node;
     }
 
     /* Menus contextuels (3 et 4) */
     function openMenuAt(whichMenu, event, node){
       if(!event){ whichMenu.style.display='none'; whichMenu.setAttribute('aria-hidden','true'); return; }
-      setCurrentNode(node,{fromMenu1:false});
+      setCurrentNode(node,{closeMenu2:true});
       const hex=toHex(getComputedStyle(currentNode).backgroundColor)||'#CC0000';
       (whichMenu.querySelector('input[type="color"]')||{}).value = hex;
       const lbl=currentNode.querySelector('.label');
@@ -594,6 +658,13 @@
       if(action==='add'){ addNodeNear(currentNode); closeMenu(menu); return; }
       if(action==='addSmall'){ addNodeNearScaled(currentNode); closeMenu(menu); return; }
       if(action==='wire'){ startWiring(currentNode); closeMenu(menu); return; }
+      if(action==='setUrl'){
+        const curr=currentNode.dataset.url||'';
+        const val=prompt("Entrez une URL (laisser vide pour supprimer) :", curr);
+        if(val===null) return;
+        setNodeUrl(currentNode, val);
+        closeMenu(menu); return;
+      }
       if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); refreshSidebar(); } closeMenu(menu); return; }
     });
     colorPicker.addEventListener('input',(e)=> applyColor(e.target.value));
@@ -602,12 +673,11 @@
     boldBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(boldBtn); currentNode.querySelector('.label').style.fontWeight = on?'700':'400'; fitLabelToNode(currentNode); saveState(); });
     italicBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(italicBtn); currentNode.querySelector('.label').style.fontStyle = on?'italic':'normal'; fitLabelToNode(currentNode); saveState(); });
     underlineBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(underlineBtn); currentNode.querySelector('.label').style.textDecoration = on?'underline':'none'; fitLabelToNode(currentNode); saveState(); });
-    // Icônes bas de Menu 3
     iconColorBtn.addEventListener('click',()=>{ colorPicker.focus(); colorPicker.click(); });
     iconCenterBtn.addEventListener('click',()=>{ centerOnCurrent(); closeMenu(menu); });
     iconDeleteBtn.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); refreshSidebar(); closeMenu(menu); });
 
-    // Menu 4 (cœur) handlers (icônes identiques en bas)
+    // Menu 4 (cœur)
     menuHeart.addEventListener('click',(e)=>{
       const btn=e.target.closest('button'); if(!btn||!currentNode) return;
       const action=btn.dataset.action;
@@ -622,12 +692,11 @@
     boldBtnH.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(boldBtnH); currentNode.querySelector('.label').style.fontWeight = on?'700':'400'; fitLabelToNode(currentNode); saveState(); });
     italicBtnH.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(italicBtnH); currentNode.querySelector('.label').style.fontStyle = on?'italic':'normal'; fitLabelToNode(currentNode); saveState(); });
     underlineBtnH.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(underlineBtnH); currentNode.querySelector('.label').style.textDecoration = on?'underline':'none'; fitLabelToNode(currentNode); saveState(); });
-    // Icônes bas de Menu 4
     iconColorBtnH.addEventListener('click',()=>{ colorPickerH.focus(); colorPickerH.click(); });
     iconCenterBtnH.addEventListener('click',()=>{ centerOnCurrent(); closeMenu(menuHeart); });
     iconDeleteBtnH.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); saveState(); refreshSidebar(); closeMenu(menuHeart); });
 
-    /* Menu 1 (principaux + secondaires) */
+    /* Menu 1 */
     function stylePrincipalButtonFromNode(btn, node){
       const col = toHex(getComputedStyle(node).backgroundColor) || '#111827';
       btn.style.backgroundColor = col;
@@ -657,11 +726,11 @@
     }
 
     /* Panneau d’actions */
-    actAddPrincipal.addEventListener('click',()=>{ if(!currentNode) return; addNodeNear(currentNode); });
-    actAddSecondary.addEventListener('click',()=>{ if(!currentNode) return; addNodeNearScaled(currentNode); });
-    actWire.addEventListener('click',()=>{ if(!currentNode) return; startWiring(currentNode); });
+    actAddPrincipal.addEventListener('click',()=>{ if(!currentNode) return; addNodeNear(currentNode); /* garder ouvert */ });
+    actAddSecondary.addEventListener('click',()=>{ if(!currentNode) return; addNodeNearScaled(currentNode); /* garder ouvert */ });
+    actWire.addEventListener('click',()=>{ if(!currentNode) return; startWiring(currentNode); /* garder ouvert */ });
     actCenter.addEventListener('click',()=> centerOnCurrent());
-    actDelete.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); currentNode=null; enableActionPanel(false); saveState(); showActionsPanel(false); refreshSidebar(); });
+    actDelete.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); currentNode=null; enableActionPanel(false); saveState(); showActionsPanel(false); menu2Locked=false; refreshSidebar(); });
 
     // Titre direct (Menu 2)
     function applyTitleFromInput(){
@@ -681,7 +750,7 @@
     exportBtn.addEventListener('click',()=>{ const data=buildState(); const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='workspace.json'; a.click(); URL.revokeObjectURL(url); });
     importBtn.addEventListener('click',()=> fileInput.click());
     fileInput.addEventListener('change', async (e)=>{ const f=e.target.files?.[0]; if(!f) return; try{ const text=await f.text(); restoreState(JSON.parse(text)); } catch{ alert('Fichier invalide.'); } finally { fileInput.value=''; } });
-    resetBtn.addEventListener('click',()=>{ if(!confirm("Réinitialiser l'espace de travail ?")) return; localStorage.removeItem('workspaceState'); qLines().forEach(l=>l.remove()); world.querySelectorAll('.node').forEach(n=>{ if(n!==mainNode) n.remove(); }); mainNode.style.left='calc(50% - 55px)'; mainNode.style.top='calc(50% - 55px)'; mainNode.querySelector('.label').textContent='Cercle principal'; mainNode.style.backgroundColor='var(--primary)'; idCounter=1; camera.x=camera.y=0; camera.z=1; applyCamera(); saveState(); updateAllLines(); fitLabelToNode(mainNode); showActionsPanel(false); refreshSidebar(); });
+    resetBtn.addEventListener('click',()=>{ if(!confirm("Réinitialiser l'espace de travail ?")) return; localStorage.removeItem('workspaceState'); qLines().forEach(l=>l.remove()); world.querySelectorAll('.node').forEach(n=>{ if(n!==mainNode) n.remove(); }); mainNode.style.left='calc(50% - 55px)'; mainNode.style.top='calc(50% - 55px)'; mainNode.querySelector('.label').textContent='Cercle principal'; mainNode.style.backgroundColor='var(--primary)'; idCounter=1; camera.x=camera.y=0; camera.z=1; applyCamera(); saveState(); updateAllLines(); fitLabelToNode(mainNode); showActionsPanel(false); menu2Locked=false; refreshSidebar(); });
 
     /* Pan au bouton milieu (clic roulette) + désélection */
     (function setupStagePan(){
@@ -696,7 +765,7 @@
         }
         if(e.button===0 && !wiring.active && !e.target.closest('.node') && !menu.contains(e.target) && !menuHeart.contains(e.target) && !actionsPanel.contains(e.target) && !document.getElementById('sidebar').contains(e.target)){
           world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
-          currentNode=null; enableActionPanel(false); showActionsPanel(false);
+          currentNode=null; enableActionPanel(false); showActionsPanel(false); menu2Locked=false;
         }
         if(e.button===0 && wiring.active && !e.target.closest('.node')) stopWiring();
       });
@@ -760,7 +829,7 @@
       stopWiring();
     }
 
-    // Bouton toolbar & clavier
+    // Toolbar & clavier
     wireModeBtn.addEventListener('click',()=>{
       if(wiring.active) stopWiring();
       else { wiring.active=true; wireModeBtn.classList.add('active'); }
@@ -786,7 +855,8 @@
         fontWeight:n.querySelector('.label')?.style.fontWeight||'',
         fontStyle:n.querySelector('.label')?.style.fontStyle||'',
         textDecoration:n.querySelector('.label')?.style.textDecoration||'',
-        maxFont: n.dataset.maxFont ? parseFloat(n.dataset.maxFont) : null
+        maxFont: n.dataset.maxFont ? parseFloat(n.dataset.maxFont) : null,
+        url: n.dataset.url || ''
       }));
       const edges=Array.from(qLines()).map(l=>({from:l.dataset.from,to:l.dataset.to}));
       return { idCounter, nodes, edges };
@@ -807,12 +877,13 @@
         const col=normalizeHex(n.color)||toHex(n.color)||'#CC0000'; node.style.backgroundColor=col;
         node.innerHTML='<span class="label"></span>'; const labelEl=node.querySelector('.label');
         labelEl.textContent=n.text||''; if(n.fontFamily) labelEl.style.fontFamily=n.fontFamily; if(n.fontWeight) labelEl.style.fontWeight=n.fontWeight; if(n.fontStyle) labelEl.style.fontStyle=n.fontStyle; if(n.textDecoration) labelEl.style.textDecoration=n.textDecoration; if(n.maxFont) node.dataset.maxFont=String(n.maxFont);
-        fitLabelToNode(node); byId[n.id]=node;
+        if(n.url){ node.dataset.url = n.url; }
+        fitLabelToNode(node); updateUrlBadge(node); byId[n.id]=node;
       });
       if(!byId['node-0']){ mainNode.dataset.id='node-0'; mainNode.querySelector('.label').textContent='Cercle principal'; byId['node-0']=mainNode; }
       enableDrag(mainNode); fitLabelToNode(mainNode);
-      (data?.edges||[]).forEach(e=>{ if(byId[e.from]&&byId[e.to]) attachLineEvents(createLine(byId[e.from],byId[e.to])); });
-      updateAllLines(); refreshSidebar(); saveState(); showActionsPanel(false);
+      (data?.edges||[]).forEach(e=>{ if(byId[e.from]&&byId[e.to]) { const l=createLine(byId[e.from],byId[e.to]); styleLineByNodes(l); } });
+      updateAllLines(); refreshSidebar(); saveState(); showActionsPanel(false); menu2Locked=false;
     }
 
     /* Init */
