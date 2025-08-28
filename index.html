@@ -29,6 +29,8 @@
     .node:hover{filter:brightness(1.05)}
     .node.selected{outline:3px solid #2563eb;box-shadow:0 0 0 6px rgba(37,99,235,.25),0 8px 24px var(--ring)}
     .node.snap-target{outline:3px dashed #10b981}
+    .node.wire-source{outline:3px solid #f59e0b}
+    .node.connectable{outline:2px dashed #f59e0b}
     .node .label{pointer-events:none;line-height:1.1;width:100%;max-width:100%;overflow:hidden;word-break:break-word;hyphens:auto}
 
     /* Menu contextuel générique */
@@ -48,6 +50,7 @@
     .toolbar button{padding:8px 12px;border:0;border-radius:10px;background:#111827;color:#fff;font-weight:600;cursor:pointer}
     .toolbar button.secondary{background:#4b5563}
     .toolbar button.danger{background:#b91c1c}
+    .toolbar button.active{outline:2px solid #2563eb}
 
     /* Menus 1 & 2 */
     .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--card);border-right:1px solid #e5e7eb;box-shadow:0 8px 24px var(--ring);padding:12px;overflow:auto;z-index:70}
@@ -72,16 +75,16 @@
     <div id="principalList"></div>
   </aside>
 
-  <!-- Menu 2 (actions, visible uniquement après sélection via Menu 1) -->
+  <!-- Menu 2 (visible uniquement après sélection via Menu 1) -->
   <aside id="actions" class="sidebar sidebar2" aria-label="Actions du cercle">
     <div id="selectedInfo" style="font-size:12px;color:var(--muted);margin:0 0 8px;">Aucun cercle sélectionné</div>
-    <!-- Nouveau : Titre direct -->
     <div class="row" aria-label="Titre (panneau)">
       <label for="titleInput2">Titre</label>
       <input id="titleInput2" type="text" placeholder="Nom du cercle" style="flex:1; height:28px; border:1px solid #e5e7eb; border-radius:6px; padding:0 8px;" />
     </div>
     <button id="actAddPrincipal" class="side-item" type="button">➕ Cercle principal</button>
     <button id="actAddSecondary" class="side-item" type="button">➕ Cercle secondaire</button>
+    <button id="actWire" class="side-item" type="button">🔗 Connecter à…</button>
     <div class="row" aria-label="Couleur (panneau)">
       <label for="colorPicker2">Couleur</label>
       <input id="colorPicker2" type="color" value="#CC0000" />
@@ -127,6 +130,7 @@
   <div id="menu" class="menu" role="menu" aria-hidden="true">
     <button data-action="add">➕ Cercle principal</button>
     <button data-action="addSmall">➕ Cercle secondaire</button>
+    <button data-action="wire">🔗 Connecter à…</button>
     <button data-action="color">🎨 Modifier la couleur</button>
     <div class="row" aria-label="Sélecteur de couleur">
       <label for="colorPicker">Couleur</label>
@@ -164,6 +168,7 @@
   <div id="menuHeart" class="menu" role="menu" aria-hidden="true">
     <button data-action="add">➕ Cercle principal</button>
     <button data-action="addSmall">➕ Cercle secondaire</button>
+    <button data-action="wire">🔗 Connecter à…</button>
     <button data-action="color">🎨 Modifier la couleur</button>
     <div class="row" aria-label="Sélecteur de couleur">
       <label for="colorPickerH">Couleur</label>
@@ -199,6 +204,7 @@
 
   <!-- Outils -->
   <div class="toolbar" aria-label="Actions rapides">
+    <button id="wireModeBtn" class="secondary">Câbler (C)</button>
     <button id="exportBtn">Exporter JSON</button>
     <button id="importBtn" class="secondary">Importer JSON</button>
     <button id="resetBtn" class="danger">Réinitialiser</button>
@@ -221,6 +227,7 @@
     const resetBtn = document.getElementById('resetBtn');
     const fileInput = document.getElementById('fileInput');
     const homeBtn = document.getElementById('homeBtn');
+    const wireModeBtn = document.getElementById('wireModeBtn');
 
     /* Menu 3 controls */
     const colorPicker = document.getElementById('colorPicker');
@@ -245,6 +252,7 @@
     const titleInput2 = document.getElementById('titleInput2');
     const actAddPrincipal = document.getElementById('actAddPrincipal');
     const actAddSecondary = document.getElementById('actAddSecondary');
+    const actWire = document.getElementById('actWire');
     const actCenter = document.getElementById('actCenter');
     const actDelete = document.getElementById('actDelete');
     const colorPicker2 = document.getElementById('colorPicker2');
@@ -263,12 +271,16 @@
     const Z_MIN = 0.5, Z_MAX = 2.0;
     let snapHint = null;
 
+    /* Câblage */
+    const wiring = { active:false, source:null, ghost:null };
+
     /* Utils */
     const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
     const approxEq = (a,b,eps=0.5)=>Math.abs(a-b)<=eps;
     const stageRect = () => stage.getBoundingClientRect();
     const centerInWorld = (el) => ({ x: el.offsetLeft + el.offsetWidth/2, y: el.offsetTop + el.offsetHeight/2 });
     function applyCamera(){ world.style.transform = `translate(${camera.x}px, ${camera.y}px) scale(${camera.z})`; }
+    function pointerToWorld(e){ const sr=stageRect(); return { wx:(e.clientX - sr.left - camera.x)/camera.z, wy:(e.clientY - sr.top - camera.y)/camera.z }; }
 
     /* Couleur utils */
     function normalizeHex(input){ if(!input) return null; let m=String(input).match(/^#?([0-9a-fA-F]{6})$/); if(m) return '#'+m[1].toUpperCase(); m=String(input).match(/^#?([0-9a-fA-F]{3})$/); if(m) return '#'+m[1].split('').map(c=>c+c).join('').toUpperCase(); return null; }
@@ -397,10 +409,22 @@
     function enableDrag(node){
       if(node._dragEnabled) return;
       let offsetXw=0, offsetYw=0, dragging=false, prevLeft=0, prevTop=0;
+
       node.addEventListener('pointerdown',(e)=>{
         if(e.button!==0) return; // drag uniquement clic gauche
+        // Si mode câblage actif → sélection source/connexion, pas de drag.
+        if(wiring.active){
+          e.preventDefault(); e.stopPropagation();
+          if(!wiring.source){
+            setCurrentNode(node,{fromMenu1:false});
+            startWiring(node); // définit la source et crée la ligne fantôme
+          }else{
+            attemptConnect(node); // essaie de relier source → node
+          }
+          return;
+        }
+
         setCurrentNode(node,{fromMenu1:false});
-        // fermer menus
         closeMenu(menu); closeMenu(menuHeart);
         node.setPointerCapture(e.pointerId);
         const rect=node.getBoundingClientRect();
@@ -410,12 +434,13 @@
         prevTop  = parseFloat(node.style.top)||0;
         dragging=true;
       });
+
       node.addEventListener('pointermove',(ev)=>{
         if(!dragging) return;
         const sr=stageRect();
         const worldX = (ev.clientX - sr.left - camera.x)/camera.z;
         const worldY = (ev.clientY - sr.top  - camera.y)/camera.z;
-        const newLeft = worldX - offsetXw;   // plus de clamp → déplacement libre
+        const newLeft = worldX - offsetXw;   // déplacement libre (peut devenir négatif)
         const newTop  = worldY - offsetYw;
 
         const dx = newLeft - prevLeft;
@@ -427,12 +452,10 @@
         fitLabelToNode(node);
 
         // Si principal → faire suivre ses secondaires
-        if(isPrincipalNode(node) && (dx !== 0 || dy !== 0)){
+        if(isPrincipalNode(node) && (dx!==0 || dy!==0)){
           secondariesOfPrincipal(node).forEach(sec=>{
-            const sl = (parseFloat(sec.style.left)||0) + dx;
-            const st = (parseFloat(sec.style.top)||0) + dy;
-            sec.style.left = sl + 'px';
-            sec.style.top  = st + 'px';
+            sec.style.left = ((parseFloat(sec.style.left)||0) + dx) + 'px';
+            sec.style.top  = ((parseFloat(sec.style.top)||0) + dy) + 'px';
             updateLinesFor(sec);
           });
         }
@@ -447,6 +470,7 @@
         prevLeft = newLeft;
         prevTop  = newTop;
       });
+
       node.addEventListener('pointerup',(e)=>{
         if(!dragging) return;
         dragging=false; node.releasePointerCapture(e.pointerId);
@@ -457,12 +481,13 @@
         }
         saveState();
       });
+
       node.addEventListener('contextmenu',(e)=>{
         e.preventDefault();
-        // Clic droit : cœur → menu 4, sinon menu 3
         if(node.id === 'main-node') openMenuAt(menuHeart, e, node);
         else openMenuAt(menu, e, node);
       });
+
       node._dragEnabled=true;
     }
 
@@ -498,16 +523,16 @@
       const hex=toHex(getComputedStyle(currentNode).backgroundColor)||'#CC0000';
       (whichMenu.querySelector('input[type="color"]')||{}).value = hex;
       const lbl=currentNode.querySelector('.label');
-      const selects = whichMenu.querySelectorAll('select');
-      selects.forEach(sel=>{
+      whichMenu.querySelectorAll('select').forEach(sel=>{
         const fam = lbl.style.fontFamily && Array.from(sel.options).some(o=>o.value===lbl.style.fontFamily)? lbl.style.fontFamily : 'system-ui';
         sel.value=fam;
       });
       const sizeInput = whichMenu.querySelector('input[type="number"]'); if(sizeInput) sizeInput.value = currentNode.dataset.maxFont || '32';
       const cs=getComputedStyle(lbl); const fw=parseInt(cs.fontWeight,10); const isBold=(fw>=600)||cs.fontWeight==='bold'; const isIt=cs.fontStyle==='italic'; const isUl=(cs.textDecorationLine||cs.textDecoration||'').includes('underline');
-      whichMenu.querySelectorAll('.toggle#boldBtn, .toggle#boldBtnH').forEach(b=>b.setAttribute('aria-pressed', isBold?'true':'false'));
-      whichMenu.querySelectorAll('.toggle#italicBtn, .toggle#italicBtnH').forEach(b=>b.setAttribute('aria-pressed', isIt?'true':'false'));
-      whichMenu.querySelectorAll('.toggle#underlineBtn, .toggle#underlineBtnH').forEach(b=>b.setAttribute('aria-pressed', isUl?'true':'false'));
+      const setPressed=(sel, on)=> sel && sel.setAttribute('aria-pressed', on?'true':'false');
+      setPressed(whichMenu.querySelector('#boldBtn')||whichMenu.querySelector('#boldBtnH'), isBold);
+      setPressed(whichMenu.querySelector('#italicBtn')||whichMenu.querySelector('#italicBtnH'), isIt);
+      setPressed(whichMenu.querySelector('#underlineBtn')||whichMenu.querySelector('#underlineBtnH'), isUl);
 
       // position
       menu.style.display='none'; menuHeart.style.display='none';
@@ -528,6 +553,7 @@
       const action=btn.dataset.action;
       if(action==='add'){ addNodeNear(currentNode); closeMenu(menu); return; }
       if(action==='addSmall'){ addNodeNearScaled(currentNode); closeMenu(menu); return; }
+      if(action==='wire'){ startWiring(currentNode); closeMenu(menu); return; }
       if(action==='color'){ colorPicker.focus(); colorPicker.click(); return; }
       if(action==='center'){ centerOnCurrent(); closeMenu(menu); return; }
       if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); } closeMenu(menu); return; }
@@ -546,6 +572,7 @@
       const action=btn.dataset.action;
       if(action==='add'){ addNodeNear(currentNode); closeMenu(menuHeart); return; }
       if(action==='addSmall'){ addNodeNearScaled(currentNode); closeMenu(menuHeart); return; }
+      if(action==='wire'){ startWiring(currentNode); closeMenu(menuHeart); return; }
       if(action==='color'){ colorPickerH.focus(); colorPickerH.click(); return; }
       if(action==='center'){ centerOnCurrent(); closeMenu(menuHeart); return; }
       if(action==='rename'){ const label=currentNode.querySelector('.label'); const name=prompt('Entrez un nouveau nom :', label.textContent.trim()); if(name){ label.textContent=name; fitLabelToNode(currentNode); saveState(); } closeMenu(menuHeart); return; }
@@ -562,7 +589,9 @@
     function stylePrincipalButtonFromNode(btn, node){
       const col = toHex(getComputedStyle(node).backgroundColor) || '#111827';
       btn.style.backgroundColor = col;
-      btn.style.color = ((()=>{ const h=col.slice(1); const r=parseInt(h.substr(0,2),16), g=parseInt(h.substr(2,2),16), b=parseInt(h.substr(4,2),16); const yiq=(r*299+g*587+b*114)/1000; return yiq>=186 ? '#111827' : '#ffffff'; })());
+      const h=col.slice(1); const r=parseInt(h.substr(0,2),16), g=parseInt(h.substr(2,2),16), b=parseInt(h.substr(4,2),16);
+      const yiq=(r*299+g*587+b*114)/1000;
+      btn.style.color = yiq>=186 ? '#111827' : '#ffffff';
       btn.style.borderColor = '#e5e7eb';
     }
     function populateChildren(principalId, ul){
@@ -588,8 +617,8 @@
     /* Panneau d’actions */
     actAddPrincipal.addEventListener('click',()=>{ if(!currentNode) return; addNodeNear(currentNode); });
     actAddSecondary.addEventListener('click',()=>{ if(!currentNode) return; addNodeNearScaled(currentNode); });
+    actWire.addEventListener('click',()=>{ if(!currentNode) return; startWiring(currentNode); });
     actCenter.addEventListener('click',()=> centerOnCurrent());
-    // Suppression du bouton Renommer ici (remplacé par le champ Titre)
     actDelete.addEventListener('click',()=>{ if(!currentNode) return; if(currentNode.id==='main-node'||currentNode.dataset.id==='node-0'){ alert('Le cercle principal ne peut pas être supprimé.'); return; } qLines().forEach(l=>{ if(l.dataset.from===currentNode.dataset.id||l.dataset.to===currentNode.dataset.id) l.remove(); }); currentNode.remove(); currentNode=null; enableActionPanel(false); saveState(); showActionsPanel(false); });
 
     // Titre direct (Menu 2)
@@ -612,19 +641,33 @@
     fileInput.addEventListener('change', async (e)=>{ const f=e.target.files?.[0]; if(!f) return; try{ const text=await f.text(); restoreState(JSON.parse(text)); } catch{ alert('Fichier invalide.'); } finally { fileInput.value=''; } });
     resetBtn.addEventListener('click',()=>{ if(!confirm("Réinitialiser l'espace de travail ?")) return; localStorage.removeItem('workspaceState'); qLines().forEach(l=>l.remove()); world.querySelectorAll('.node').forEach(n=>{ if(n!==mainNode) n.remove(); }); mainNode.style.left='calc(50% - 55px)'; mainNode.style.top='calc(50% - 55px)'; mainNode.querySelector('.label').textContent='Cercle principal'; mainNode.style.backgroundColor='var(--primary)'; idCounter=1; camera.x=camera.y=0; camera.z=1; applyCamera(); saveState(); updateAllLines(); fitLabelToNode(mainNode); showActionsPanel(false); });
 
-    /* Pan au bouton milieu (clic roulette) */
+    /* Pan au bouton milieu (clic roulette) + désélection */
     (function setupStagePan(){
       let panActive=false, lastX=0,lastY=0;
       stage.addEventListener('pointerdown',(e)=>{
-        if(e.button!==1) return; // bouton milieu
-        e.preventDefault();
-        panActive=true; stage.classList.add('panning');
-        lastX=e.clientX; lastY=e.clientY;
-        stage.setPointerCapture?.(e.pointerId);
+        if(e.button===1){ // bouton milieu
+          e.preventDefault();
+          panActive=true; stage.classList.add('panning');
+          lastX=e.clientX; lastY=e.clientY;
+          stage.setPointerCapture?.(e.pointerId);
+          return;
+        }
+        // clic gauche sur fond (pas de câblage) → désélection
+        if(e.button===0 && !wiring.active && !e.target.closest('.node') && !menu.contains(e.target) && !menuHeart.contains(e.target) && !actionsPanel.contains(e.target) && !document.getElementById('sidebar').contains(e.target)){
+          world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
+          currentNode=null; enableActionPanel(false); showActionsPanel(false);
+        }
+        // clic gauche sur fond en câblage → annule
+        if(e.button===0 && wiring.active && !e.target.closest('.node')) stopWiring();
       });
       stage.addEventListener('pointermove',(e)=>{
-        if(!panActive) return;
-        const dx=e.clientX-lastX, dy=e.clientY-lastY; camera.x+=dx; camera.y+=dy; applyCamera(); lastX=e.clientX; lastY=e.clientY;
+        if(panActive){
+          const dx=e.clientX-lastX, dy=e.clientY-lastY; camera.x+=dx; camera.y+=dy; applyCamera(); lastX=e.clientX; lastY=e.clientY;
+        }
+        if(wiring.active && wiring.source && wiring.ghost){
+          const {wx,wy} = pointerToWorld(e);
+          wiring.ghost.setAttribute('x2', wx); wiring.ghost.setAttribute('y2', wy);
+        }
       });
       function endPan(e){
         if(panActive){ panActive=false; stage.classList.remove('panning'); stage.releasePointerCapture?.(e.pointerId); }
@@ -649,6 +692,56 @@
       camera.z = zNew;
       applyCamera();
     }, { passive:false });
+
+    /* ====== Mode CÂBLAGE ====== */
+    function startWiring(source){
+      // active si besoin
+      if(!wiring.active){ wiring.active=true; wireModeBtn.classList.add('active'); }
+      wiring.source = source;
+      // ghost
+      if(wiring.ghost) wiring.ghost.remove();
+      const c = centerInWorld(source);
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('stroke','#2563eb'); line.setAttribute('stroke-width','2'); line.setAttribute('stroke-linecap','round'); line.setAttribute('stroke-dasharray','6 6');
+      line.setAttribute('x1', c.x); line.setAttribute('y1', c.y); line.setAttribute('x2', c.x); line.setAttribute('y2', c.y);
+      svg.appendChild(line); wiring.ghost=line;
+      // highlight
+      world.querySelectorAll('.node').forEach(n=>{ if(n===source){ n.classList.add('wire-source'); } else { n.classList.add('connectable'); } });
+    }
+    function stopWiring(){
+      wiring.active=false; wireModeBtn.classList.remove('active');
+      if(wiring.ghost){ wiring.ghost.remove(); wiring.ghost=null; }
+      wiring.source=null;
+      world.querySelectorAll('.node.wire-source').forEach(n=>n.classList.remove('wire-source'));
+      world.querySelectorAll('.node.connectable').forEach(n=>n.classList.remove('connectable'));
+    }
+    function attemptConnect(target){
+      if(!wiring.source || target===wiring.source){ // invalide
+        stopWiring(); return;
+      }
+      const a=wiring.source, b=target;
+      if(findLine(a.dataset.id,b.dataset.id)){ // déjà reliés
+        stopWiring(); return;
+      }
+      createLine(a,b);
+      // re-parenting S→P
+      if(isSecondaryNode(a) && isPrincipalNode(b)) ensureSinglePrincipalEdge(a,b);
+      if(isSecondaryNode(b) && isPrincipalNode(a)) ensureSinglePrincipalEdge(b,a);
+      saveState(); refreshSidebar();
+      stopWiring();
+    }
+
+    // Bouton toolbar & clavier
+    wireModeBtn.addEventListener('click',()=>{
+      if(wiring.active) stopWiring();
+      else { wiring.active=true; wireModeBtn.classList.add('active'); /* la 1re sélection se fait au clic gauche sur un cercle */ }
+    });
+    document.addEventListener('keydown',(e)=>{
+      if(e.key==='c' || e.key==='C'){ // toggle
+        if(wiring.active) stopWiring(); else { wiring.active=true; wireModeBtn.classList.add('active'); }
+      }
+      if(e.key==='Escape'){ if(wiring.active) stopWiring(); closeMenu(menu); closeMenu(menuHeart); }
+    });
 
     /* Resize */
     window.addEventListener('resize',()=>{ updateAllLines(); fitAllLabels(); });
