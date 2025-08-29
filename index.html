@@ -50,7 +50,7 @@
     .task-badge{
       position:absolute; right:-6px; top:-6px; width:22px; height:22px; border-radius:9999px;
       border:1px solid #e5e7eb; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.08);
-      display:flex; align-items:center; justify-content:center; font-size:12px; color:#f59e0b; /* amber */
+      display:flex; align-items:center; justify-content:center; font-size:12px; color:#f59e0b;
       user-select:none;
     }
 
@@ -109,6 +109,7 @@
     .list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
     .task-item{border:1px solid #e5e7eb;border-radius:10px;padding:10px;background:#fafafa}
     .task-item small{color:#6b7280}
+    .dot{display:inline-block;width:10px;height:10px;border-radius:9999px;border:1px solid #e5e7eb;margin-right:6px;vertical-align:middle}
 
     /* Pulse */
     @keyframes pulseNode{0%{box-shadow:0 0 0 0 rgba(17,24,39,.35)}100%{box-shadow:0 0 0 6px rgba(17,24,39,0)}}
@@ -278,12 +279,16 @@
   <button id="tasksBtn" class="home-btn" title="Voir toutes les tâches">⭐</button>
   <button id="homeBtn" class="home-btn" title="Recentrer sur le cœur">♥</button>
 
-  <!-- Modal ajout tâche -->
+  <!-- Modal ajout tâche (par cercle) -->
   <div id="taskEditor" class="modal" aria-hidden="true">
     <div class="card">
       <h3>Ajouter une tâche</h3>
       <div class="row"><label>Titre</label><input id="taskTitle" type="text" placeholder="Titre de la tâche" /></div>
       <div class="row"><label>Note</label><textarea id="taskDesc" rows="4" placeholder="Description ou notes"></textarea></div>
+
+      <h3>Tâches du cercle</h3>
+      <div id="nodeTasksList" class="list"></div>
+
       <div class="actions">
         <button id="taskCancel" class="btn secondary">Annuler</button>
         <button id="taskSave" class="btn">Enregistrer</button>
@@ -291,7 +296,7 @@
     </div>
   </div>
 
-  <!-- Modal liste tâches -->
+  <!-- Modal liste tâches (globale) -->
   <div id="tasksModal" class="modal" aria-hidden="true">
     <div class="card">
       <h3>Liste des tâches</h3>
@@ -361,12 +366,13 @@
     const underlineBtn2 = document.getElementById('underlineBtn2');
     const closeMenu2Btn = document.getElementById('closeMenu2');
 
-    /* Modals Tâches */
+    /* Modales Tâches */
     const taskEditor = document.getElementById('taskEditor');
     const taskTitle = document.getElementById('taskTitle');
     const taskDesc = document.getElementById('taskDesc');
     const taskSave = document.getElementById('taskSave');
     const taskCancel = document.getElementById('taskCancel');
+    const nodeTasksList = document.getElementById('nodeTasksList');
     const tasksModal = document.getElementById('tasksModal');
     const tasksContainer = document.getElementById('tasksContainer');
     const tasksClose = document.getElementById('tasksClose');
@@ -374,7 +380,7 @@
     /* State */
     let currentNode = null;
     let idCounter = 1;
-    let menu2Locked = false; // Menu 2 visible uniquement après sélection via Menu 1
+    let menu2Locked = false;
     const camera = { x: 0, y: 0, z: 1 };
     const BIG_SIZE = 110, SMALL_SIZE = 55;
     const SNAP_GAP = 12, SNAP_RANGE = 120;
@@ -384,6 +390,9 @@
     /* Câblage */
     const wiring = { active:false, source:null, ghost:null };
 
+    /* Tâches (modale par nœud) */
+    let taskEditorNode = null;
+
     /* Utils */
     const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
     const approxEq = (a,b,eps=0.5)=>Math.abs(a-b)<=eps;
@@ -391,6 +400,7 @@
     const centerInWorld = (el) => ({ x: el.offsetLeft + el.offsetWidth/2, y: el.offsetTop + el.offsetHeight/2 });
     function applyCamera(){ world.style.transform = `translate(${camera.x}px, ${camera.y}px) scale(${camera.z})`; }
     function pointerToWorld(e){ const sr=stageRect(); return { wx:(e.clientX - sr.left - camera.x)/camera.z, wy:(e.clientY - sr.top - camera.y)/camera.z }; }
+    const isModalOpen = (m) => m && m.style.display === 'flex';
 
     /* Couleur utils */
     function normalizeHex(input){ if(!input) return null; let m=String(input).match(/^#?([0-9a-fA-F]{6})$/); if(m) return '#'+m[1].toUpperCase(); m=String(input).match(/^#?([0-9a-fA-F]{3})$/); if(m) return '#'+m[1].split('').map(c=>c+c).join('').toUpperCase(); return null; }
@@ -594,22 +604,40 @@
       const b = document.createElement('div');
       b.className = 'task-badge';
       b.textContent = '⭐';
-      // Ne pas gêner le drag
       b.addEventListener('pointerdown', e=> e.stopPropagation());
       b.addEventListener('click', e=> e.stopPropagation());
       node.appendChild(b);
     }
+
     function addTaskToNode(node, title, desc){
-      if(!node._tasks) node._tasks = [];
+      node._tasks = node._tasks || [];
+      if(node._tasks.length >= 10){
+        alert('Limite de 10 tâches par cercle atteinte.');
+        return false;
+      }
       node._tasks.push({ id: 't'+Date.now()+Math.random().toString(36).slice(2,6), title, desc });
       updateTaskBadge(node);
       saveState();
+      return true;
     }
+
+    function deleteTaskFromNode(node, taskId){
+      if(!node || !node._tasks) return;
+      node._tasks = node._tasks.filter(t => t.id !== taskId);
+      updateTaskBadge(node);
+      saveState();
+      if(taskEditorNode === node && isModalOpen(taskEditor)) renderNodeTasksList();
+      if(isModalOpen(tasksModal)) renderGlobalTasksList();
+    }
+
+    // Modale d'ajout/visualisation des tâches du nœud
     function openTaskEditor(forNode){
       if(!forNode) return;
       setCurrentNode(forNode,{preserveMenu2:true});
+      taskEditorNode = forNode;
       taskTitle.value = '';
       taskDesc.value = '';
+      renderNodeTasksList();
       taskEditor.style.display = 'flex';
       taskEditor.setAttribute('aria-hidden','false');
       taskTitle.focus();
@@ -617,57 +645,103 @@
     function closeTaskEditor(){
       taskEditor.style.display = 'none';
       taskEditor.setAttribute('aria-hidden','true');
+      taskEditorNode = null;
     }
+    function renderNodeTasksList(){
+      const node = taskEditorNode;
+      nodeTasksList.innerHTML = '';
+      const tasks = (node && node._tasks) ? node._tasks : [];
+      if(tasks.length === 0){
+        const empty = document.createElement('div');
+        empty.className = 'task-item';
+        empty.textContent = 'Aucune tâche pour ce cercle.';
+        nodeTasksList.appendChild(empty);
+        return;
+      }
+      tasks.forEach(t=>{
+        const div = document.createElement('div');
+        div.className = 'task-item';
+        div.innerHTML = `
+          <div><strong>⭐ ${escapeHtml(t.title)}</strong></div>
+          ${t.desc ? `<div style="margin-top:6px">${escapeHtml(t.desc)}</div>` : ''}
+        `;
+        nodeTasksList.appendChild(div);
+      });
+    }
+
     taskSave.addEventListener('click', ()=>{
       if(!currentNode) return closeTaskEditor();
       const t = taskTitle.value.trim();
       const d = taskDesc.value.trim();
       if(!t){ alert('Veuillez saisir un titre.'); return; }
-      addTaskToNode(currentNode, t, d);
-      closeTaskEditor();
+      const ok = addTaskToNode(currentNode, t, d);
+      if(!ok) return;
+      renderNodeTasksList();
+      if(isModalOpen(tasksModal)) renderGlobalTasksList();
+      taskTitle.value = ''; taskDesc.value = ''; taskTitle.focus();
     });
     taskCancel.addEventListener('click', closeTaskEditor);
     taskEditor.addEventListener('click', (e)=>{ if(e.target===taskEditor) closeTaskEditor(); });
 
-    /* Liste globale de tâches */
+    // Liste globale des tâches (lecture + suppression)
     tasksBtn.addEventListener('click', openTasksListModal);
     tasksClose.addEventListener('click', closeTasksListModal);
     tasksModal.addEventListener('click', (e)=>{ if(e.target===tasksModal) closeTasksListModal(); });
 
-    function openTasksListModal(){
+    function gatherAllTasks(){
       const items = [];
       world.querySelectorAll('.node').forEach(n=>{
         const tasks = n._tasks || [];
         if(tasks.length===0) return;
         const name = n.querySelector('.label')?.textContent || n.dataset.id;
-        tasks.forEach(task=>{
-          items.push({ node:n, nodeName:name, task });
-        });
+        tasks.forEach(task=> items.push({ node:n, nodeName:name, task }));
       });
+      return items;
+    }
+
+    function renderGlobalTasksList(){
+      const items = gatherAllTasks();
       tasksContainer.innerHTML = '';
-      if(items.length===0){
+      if(items.length === 0){
         const empty = document.createElement('div');
         empty.className='task-item';
         empty.textContent = 'Aucune tâche.';
         tasksContainer.appendChild(empty);
-      }else{
-        items.forEach(({node,nodeName,task})=>{
-          const div = document.createElement('div');
-          div.className='task-item';
-          div.innerHTML = `
-            <div><strong>⭐ ${escapeHtml(task.title)}</strong></div>
-            <div><small>Sur : ${escapeHtml(nodeName)}</small></div>
-            ${task.desc ? `<div style="margin-top:6px">${escapeHtml(task.desc)}</div>` : ''}
-          `;
-          div.style.cursor='pointer';
-          div.addEventListener('click', ()=>{
-            closeTasksListModal();
-            setCurrentNode(node,{preserveMenu2:true});
-            centerOnNode(node);
-          });
-          tasksContainer.appendChild(div);
-        });
+        return;
       }
+      items.forEach(({node,nodeName,task})=>{
+        const col = toHex(getComputedStyle(node).backgroundColor) || '#111827';
+        const wrapper = document.createElement('div');
+        wrapper.className = 'task-item';
+        wrapper.innerHTML = `
+          <div style="display:flex; align-items:flex-start; gap:10px; justify-content:space-between;">
+            <div class="task-main" style="flex:1; cursor:pointer">
+              <div><strong><span class="dot" style="background:${col}"></span>⭐ ${escapeHtml(task.title)}</strong></div>
+              <div><small>Sur : ${escapeHtml(nodeName)}</small></div>
+              ${task.desc ? `<div style="margin-top:6px">${escapeHtml(task.desc)}</div>` : ''}
+            </div>
+            <button class="icon-btn small" title="Supprimer">🗑️</button>
+          </div>
+        `;
+        const main = wrapper.querySelector('.task-main');
+        const delBtn = wrapper.querySelector('button');
+        main.addEventListener('click', ()=>{
+          closeTasksListModal();
+          setCurrentNode(node,{preserveMenu2:true});
+          centerOnNode(node);
+        });
+        delBtn.addEventListener('click', (ev)=>{
+          ev.stopPropagation();
+          if(confirm('Supprimer cette tâche ?')){
+            deleteTaskFromNode(node, task.id);
+          }
+        });
+        tasksContainer.appendChild(wrapper);
+      });
+    }
+
+    function openTasksListModal(){
+      renderGlobalTasksList();
       tasksModal.style.display='flex';
       tasksModal.setAttribute('aria-hidden','false');
     }
@@ -675,6 +749,7 @@
       tasksModal.style.display='none';
       tasksModal.setAttribute('aria-hidden','true');
     }
+
     function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 
     function enableDrag(node){
@@ -802,14 +877,11 @@
         sel.value=fam;
       });
       const sizeInput = whichMenu.querySelector('input[type="number"]'); if(sizeInput) sizeInput.value = currentNode.dataset.maxFont || '32';
-      // style toggles
       const cs=getComputedStyle(lbl); const fw=parseInt(cs.fontWeight,10); const isBold=(fw>=600)||cs.fontWeight==='bold'; const isIt=cs.fontStyle==='italic'; const isUl=(cs.textDecorationLine||cs.textDecoration||'').includes('underline');
       const setPressed=(id,on)=>{ const el=whichMenu.querySelector(id); if(el) el.setAttribute('aria-pressed', on?'true':'false'); };
       setPressed('#boldBtn', isBold); setPressed('#italicBtn', isIt); setPressed('#underlineBtn', isUl);
       setPressed('#boldBtnH', isBold); setPressed('#italicBtnH', isIt); setPressed('#underlineBtnH', isUl);
-
       if(whichMenu===menu){ titleInput3.value = lbl.textContent || ''; syncOpenUrlIcon(); }
-
       menu.style.display='none'; menuHeart.style.display='none';
       whichMenu.style.display='flex'; whichMenu.setAttribute('aria-hidden','false');
       const mRect=whichMenu.getBoundingClientRect(); const vw=innerWidth,vh=innerHeight; const x=Math.min(event.clientX,vw-mRect.width-8); const y=Math.min(event.clientY,vh-mRect.height-8); whichMenu.style.left=x+'px'; whichMenu.style.top=y+'px'; event.stopPropagation();
@@ -920,6 +992,14 @@
     }
     titleInput2.addEventListener('change', applyTitleFromInput);
     titleInput2.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyTitleFromInput(); titleInput2.blur(); } });
+
+    // Menu 2 style/color controls
+    colorPicker2.addEventListener('input',(e)=> applyColor(e.target.value));
+    fontSelect2.addEventListener('change',(e)=> setFamily(e.target.value));
+    fontSizeMax2.addEventListener('input',(e)=> setMax(e.target.value));
+    boldBtn2.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(boldBtn2); currentNode.querySelector('.label').style.fontWeight = on?'700':'400'; fitLabelToNode(currentNode); saveState(); });
+    italicBtn2.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(italicBtn2); currentNode.querySelector('.label').style.fontStyle = on?'italic':'normal'; fitLabelToNode(currentNode); saveState(); });
+    underlineBtn2.addEventListener('click',(e)=>{ e.stopPropagation(); const on=togglePressed(underlineBtn2); currentNode.querySelector('.label').style.textDecoration = on?'underline':'none'; fitLabelToNode(currentNode); saveState(); });
 
     /* Export/Import/Reset */
     exportBtn.addEventListener('click',()=>{ const data=buildState(); const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='workspace.json'; a.click(); URL.revokeObjectURL(url); });
@@ -1058,7 +1138,7 @@
         node._tasks = Array.isArray(n.tasks) ? n.tasks.slice() : [];
         fitLabelToNode(node); updateUrlBadge(node); updateTaskBadge(node); byId[n.id]=node;
       });
-      if(!byId['node-0']){ mainNode.dataset.id='node-0'; mainNode.querySelector('.label').textContent='Cercle principal'; byId['node-0']=mainNode; }
+      if(!byId['node-0']){ mainNode.dataset.id='node-0'; mainNode.querySelector('.label').textContent = 'Cercle principal'; byId['node-0']=mainNode; }
       enableDrag(mainNode); fitLabelToNode(mainNode);
       (data?.edges||[]).forEach(e=>{ if(byId[e.from]&&byId[e.to]) { const l=createLine(byId[e.from],byId[e.to]); styleLineByNodes(l); } });
       updateAllLines(); refreshSidebar(); saveState(); showActionsPanel(false); menu2Locked=false;
