@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -32,7 +32,6 @@
     .node.selected{outline:3px solid #2563eb;box-shadow:0 0 0 6px rgba(37,99,235,.25),0 8px 24px var(--ring)}
     .node .label{
       pointer-events:none;line-height:1.1;width:100%;max-width:100%;overflow:hidden;word-break:break-word;hyphens:auto;
-      /* Contour noir du texte */
       text-shadow:
         -1px -1px 0 #000,
          1px -1px 0 #000,
@@ -101,7 +100,7 @@
     .modal .card{width:min(520px,calc(100vw - 32px));max-height:80vh;overflow:auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.25);padding:14px}
     .modal .card h3{margin:4px 0 10px 0}
     .modal .row{display:flex;gap:10px;margin:8px 0}
-    .modal label{font-size:12px;color:var(--muted);min-width:72px}
+    .modal label{font-size:12px;color:var(--muted);min-width:90px}
     .modal input,.modal textarea{flex:1;border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;font:inherit;background:transparent}
     .modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
     .btn{padding:8px 12px;border-radius:10px;border:1px solid #e5e7eb;background:#111827;color:#fff;cursor:pointer}
@@ -226,7 +225,7 @@
       <div class="menu-spacer"></div>
       <!-- Icônes en bas -->
       <div class="menu-footer">
-        <button id="iconTaskBtn" class="icon-btn star" title="Ajouter une tâche" aria-label="Ajouter une tâche">⭐</button>
+        <button id="iconTaskBtn" class="icon-btn star" title="Ajouter/éditer des tâches" aria-label="Ajouter/éditer des tâches">⭐</button>
         <button id="iconWireBtn" class="icon-btn" title="Connecter à…" aria-label="Connecter à…">🔗</button>
         <button id="iconCenterBtn" class="icon-btn" title="Centrer sur le cercle" aria-label="Centrer sur le cercle">🎯</button>
         <button id="iconDeleteBtn" class="icon-btn" title="Supprimer le cercle" aria-label="Supprimer le cercle">🗑️</button>
@@ -279,12 +278,14 @@
   <button id="tasksBtn" class="home-btn" title="Voir toutes les tâches">⭐</button>
   <button id="homeBtn" class="home-btn" title="Recentrer sur le cœur">♥</button>
 
-  <!-- Modal ajout tâche (par cercle) -->
+  <!-- Modal ajout/édition tâche (par cercle) -->
   <div id="taskEditor" class="modal" aria-hidden="true">
     <div class="card">
-      <h3>Ajouter une tâche</h3>
+      <h3>Ajouter / modifier une tâche</h3>
       <div class="row"><label>Titre</label><input id="taskTitle" type="text" placeholder="Titre de la tâche" /></div>
       <div class="row"><label>Note</label><textarea id="taskDesc" rows="4" placeholder="Description ou notes"></textarea></div>
+      <div class="row"><label>Début</label><input id="taskStart" type="date" /></div>
+      <div class="row"><label>Fin</label><input id="taskEnd" type="date" /></div>
 
       <h3>Tâches du cercle</h3>
       <div id="nodeTasksList" class="list"></div>
@@ -370,6 +371,8 @@
     const taskEditor = document.getElementById('taskEditor');
     const taskTitle = document.getElementById('taskTitle');
     const taskDesc = document.getElementById('taskDesc');
+    const taskStart = document.getElementById('taskStart');
+    const taskEnd = document.getElementById('taskEnd');
     const taskSave = document.getElementById('taskSave');
     const taskCancel = document.getElementById('taskCancel');
     const nodeTasksList = document.getElementById('nodeTasksList');
@@ -392,6 +395,7 @@
 
     /* Tâches (modale par nœud) */
     let taskEditorNode = null;
+    let editingTaskId = null; // <-- pour « modifier »
 
     /* Utils */
     const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
@@ -609,16 +613,25 @@
       node.appendChild(b);
     }
 
-    function addTaskToNode(node, title, desc){
+    function addTaskToNode(node, title, desc, start, end){
       node._tasks = node._tasks || [];
       if(node._tasks.length >= 10){
         alert('Limite de 10 tâches par cercle atteinte.');
         return false;
       }
-      node._tasks.push({ id: 't'+Date.now()+Math.random().toString(36).slice(2,6), title, desc });
+      node._tasks.push({ id: 't'+Date.now()+Math.random().toString(36).slice(2,6), title, desc, start, end });
       updateTaskBadge(node);
       saveState();
       return true;
+    }
+
+    function updateTaskOnNode(node, taskId, patch){
+      if(!node || !node._tasks) return;
+      const t = node._tasks.find(x=>x.id===taskId);
+      if(!t) return;
+      Object.assign(t, patch);
+      updateTaskBadge(node);
+      saveState();
     }
 
     function deleteTaskFromNode(node, taskId){
@@ -630,22 +643,49 @@
       if(isModalOpen(tasksModal)) renderGlobalTasksList();
     }
 
-    // Modale d'ajout/visualisation des tâches du nœud
-    function openTaskEditor(forNode){
+    // Helpers d'affichage des dates
+    function fmtRange(start, end){
+      const s = start ? start : null;
+      const e = end ? end : null;
+      if(!s && !e) return '';
+      if(s && e) return `Du ${s} au ${e}`;
+      if(s && !e) return `À partir du ${s}`;
+      if(!s && e) return `Jusqu'au ${e}`;
+    }
+
+    // Modale d'ajout/édition des tâches du nœud
+    function openTaskEditor(forNode, taskIdToEdit=null){
       if(!forNode) return;
       setCurrentNode(forNode,{preserveMenu2:true});
       taskEditorNode = forNode;
+
+      // reset champs
+      editingTaskId = null;
       taskTitle.value = '';
       taskDesc.value = '';
+      taskStart.value = '';
+      taskEnd.value = '';
+
+      if(taskIdToEdit){
+        const t = (forNode._tasks||[]).find(x=>x.id===taskIdToEdit);
+        if(t){
+          editingTaskId = t.id;
+          taskTitle.value = t.title || '';
+          taskDesc.value = t.desc || '';
+          taskStart.value = t.start || '';
+          taskEnd.value = t.end || '';
+        }
+      }
       renderNodeTasksList();
       taskEditor.style.display = 'flex';
       taskEditor.setAttribute('aria-hidden','false');
-      taskTitle.focus();
+      (taskTitle.value ? taskDesc : taskTitle).focus();
     }
     function closeTaskEditor(){
       taskEditor.style.display = 'none';
       taskEditor.setAttribute('aria-hidden','true');
       taskEditorNode = null;
+      editingTaskId = null;
     }
     function renderNodeTasksList(){
       const node = taskEditorNode;
@@ -662,9 +702,25 @@
         const div = document.createElement('div');
         div.className = 'task-item';
         div.innerHTML = `
-          <div><strong>⭐ ${escapeHtml(t.title)}</strong></div>
-          ${t.desc ? `<div style="margin-top:6px">${escapeHtml(t.desc)}</div>` : ''}
+          <div style="display:flex; align-items:flex-start; gap:10px; justify-content:space-between;">
+            <div class="task-main" style="flex:1;">
+              <div><strong>⭐ ${escapeHtml(t.title)}</strong></div>
+              ${t.start || t.end ? `<div><small>${escapeHtml(fmtRange(t.start,t.end))}</small></div>` : ''}
+              ${t.desc ? `<div style="margin-top:6px">${escapeHtml(t.desc)}</div>` : ''}
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="icon-btn small btn-edit" title="Modifier">✏️</button>
+              <button class="icon-btn small btn-del" title="Supprimer">🗑️</button>
+            </div>
+          </div>
         `;
+        div.querySelector('.btn-edit').addEventListener('click', ()=>{
+          openTaskEditor(node, t.id);
+        });
+        div.querySelector('.btn-del').addEventListener('click', (ev)=>{
+          ev.stopPropagation();
+          if(confirm('Supprimer cette tâche ?')) deleteTaskFromNode(node, t.id);
+        });
         nodeTasksList.appendChild(div);
       });
     }
@@ -673,17 +729,25 @@
       if(!currentNode) return closeTaskEditor();
       const t = taskTitle.value.trim();
       const d = taskDesc.value.trim();
+      const s = taskStart.value || '';
+      const e = taskEnd.value || '';
       if(!t){ alert('Veuillez saisir un titre.'); return; }
-      const ok = addTaskToNode(currentNode, t, d);
-      if(!ok) return;
+      if(editingTaskId){
+        updateTaskOnNode(currentNode, editingTaskId, { title:t, desc:d, start:s, end:e });
+        editingTaskId = null;
+      }else{
+        const ok = addTaskToNode(currentNode, t, d, s, e);
+        if(!ok) return;
+      }
       renderNodeTasksList();
       if(isModalOpen(tasksModal)) renderGlobalTasksList();
-      taskTitle.value = ''; taskDesc.value = ''; taskTitle.focus();
+      taskTitle.value = ''; taskDesc.value = ''; taskStart.value=''; taskEnd.value='';
+      taskTitle.focus();
     });
     taskCancel.addEventListener('click', closeTaskEditor);
     taskEditor.addEventListener('click', (e)=>{ if(e.target===taskEditor) closeTaskEditor(); });
 
-    // Liste globale des tâches (lecture + suppression)
+    // Liste globale des tâches (lecture + suppression + édition)
     tasksBtn.addEventListener('click', openTasksListModal);
     tasksClose.addEventListener('click', closeTasksListModal);
     tasksModal.addEventListener('click', (e)=>{ if(e.target===tasksModal) closeTasksListModal(); });
@@ -718,13 +782,19 @@
             <div class="task-main" style="flex:1; cursor:pointer">
               <div><strong><span class="dot" style="background:${col}"></span>⭐ ${escapeHtml(task.title)}</strong></div>
               <div><small>Sur : ${escapeHtml(nodeName)}</small></div>
+              ${task.start || task.end ? `<div><small>${escapeHtml(fmtRange(task.start,task.end))}</small></div>` : ''}
               ${task.desc ? `<div style="margin-top:6px">${escapeHtml(task.desc)}</div>` : ''}
             </div>
-            <button class="icon-btn small" title="Supprimer">🗑️</button>
+            <div style="display:flex; gap:6px;">
+              <button class="icon-btn small btn-edit" title="Modifier">✏️</button>
+              <button class="icon-btn small btn-del"  title="Supprimer">🗑️</button>
+            </div>
           </div>
         `;
         const main = wrapper.querySelector('.task-main');
-        const delBtn = wrapper.querySelector('button');
+        const delBtn = wrapper.querySelector('.btn-del');
+        const editBtn = wrapper.querySelector('.btn-edit');
+
         main.addEventListener('click', ()=>{
           closeTasksListModal();
           setCurrentNode(node,{preserveMenu2:true});
@@ -736,6 +806,12 @@
             deleteTaskFromNode(node, task.id);
           }
         });
+        editBtn.addEventListener('click', (ev)=>{
+          ev.stopPropagation();
+          closeTasksListModal();
+          openTaskEditor(node, task.id); // ouvre la modale pré-remplie
+        });
+
         tasksContainer.appendChild(wrapper);
       });
     }
@@ -1112,7 +1188,7 @@
         textDecoration:n.querySelector('.label')?.style.textDecoration||'',
         maxFont: n.dataset.maxFont ? parseFloat(n.dataset.maxFont) : null,
         url: n.dataset.url || '',
-        tasks: (n._tasks||[]).map(t=>({id:t.id, title:t.title, desc:t.desc}))
+        tasks: (n._tasks||[]).map(t=>({id:t.id, title:t.title, desc:t.desc, start:t.start||'', end:t.end||''}))
       }));
       const edges=Array.from(qLines()).map(l=>({from:l.dataset.from,to:l.dataset.to}));
       return { idCounter, nodes, edges, camera };
@@ -1135,7 +1211,7 @@
         node.innerHTML='<span class="label"></span>'; const labelEl=node.querySelector('.label');
         labelEl.textContent=n.text||''; if(n.fontFamily) labelEl.style.fontFamily=n.fontFamily; if(n.fontWeight) labelEl.style.fontWeight=n.fontWeight; if(n.fontStyle) labelEl.style.fontStyle=n.fontStyle; if(n.textDecoration) labelEl.style.textDecoration=n.textDecoration; if(n.maxFont) node.dataset.maxFont=String(n.maxFont);
         if(n.url){ node.dataset.url = n.url; }
-        node._tasks = Array.isArray(n.tasks) ? n.tasks.slice() : [];
+        node._tasks = Array.isArray(n.tasks) ? n.tasks.map(t=>({ id:t.id, title:t.title, desc:t.desc, start:t.start||'', end:t.end||'' })) : [];
         fitLabelToNode(node); updateUrlBadge(node); updateTaskBadge(node); byId[n.id]=node;
       });
       if(!byId['node-0']){ mainNode.dataset.id='node-0'; mainNode.querySelector('.label').textContent = 'Cercle principal'; byId['node-0']=mainNode; }
