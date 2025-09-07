@@ -90,7 +90,8 @@
     /* Croix fermeture Menu 2 */
     #closeMenu2{position:sticky; top:0; float:right; width:26px; height:26px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-weight:700; margin-left:auto}
 
-    /* *** HARMONISATION ** Menu 2 uniquement (look & feel Menu 3) *** */
+    /* *** HARMONISATION Menu 2 = look & feel Menu 3 *** */
+    /* Boutons "ghost" comme Menu 3 */
     #actions .side-item{
       width:100%;
       appearance:none;
@@ -106,11 +107,23 @@
       margin-bottom:6px;
       transition:background .12s ease, opacity .12s ease;
     }
-    #actions .side-item:hover{ background:#f3f4f6 }
+    #actions .side-item:hover{ background:#f3f4f6; filter:none }
     #actions .side-item:focus-visible{ outline:2px solid #2563eb; outline-offset:2px }
     #actions .side-item:disabled{ opacity:.5; cursor:not-allowed }
     #actions .side-item.danger{ color:#b91c1c }
     #actions .side-item.danger:hover{ background:#fee2e2 }
+
+    /* Rows, labels, inputs, toggles comme Menu 3 */
+    #actions .row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid #e5e7eb}
+    #actions .row:first-of-type{border-top:none}
+    #actions .row label{font-size:12px;color:var(--muted);min-width:90px}
+    #actions input[type="color"]{width:36px;height:28px;border:1px solid #e5e7eb;border-radius:6px;padding:0;background:transparent;cursor:pointer}
+    #actions select,
+    #actions input[type="number"],
+    #actions input[type="text"]{height:28px;border:1px solid #e5e7eb;border-radius:6px;padding:0 8px;background:transparent}
+    #actions .toggle-group{display:flex;gap:8px}
+    #actions .toggle{padding:6px 10px;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;background:transparent}
+    #actions .toggle[aria-pressed="true"]{background:#111827;color:#fff}
 
     /* Boutons flottants bas-droite */
     .home-btn{position:fixed;bottom:16px;width:44px;height:44px;border-radius:9999px;border:1px solid #e5e7eb;background:#fff;box-shadow:0 8px 24px var(--ring);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;z-index:65}
@@ -198,7 +211,6 @@
   <!-- Menu 3 (générique) -->
   <div id="menu" class="menu" role="menu" aria-hidden="true">
     <div class="menu-body">
-      <!-- Champ de nom -->
       <div class="row" aria-label="Titre (menu 3)">
         <label for="titleInput3">Titre</label>
         <input id="titleInput3" type="text" placeholder="Nom du cercle" style="flex:1" />
@@ -207,19 +219,16 @@
       <button data-action="add">➕ Cercle principal</button>
       <button data-action="addSmall">➕ Cercle secondaire</button>
 
-      <!-- URL -->
       <div class="row" aria-label="URL">
         <button data-action="setUrl" style="flex:1">🔗 Lier une URL…</button>
         <a id="openUrlBtnMenu" class="icon-btn small" title="Ouvrir l’URL" target="_blank" rel="noopener noreferrer">↗</a>
       </div>
 
-      <!-- Couleur -->
       <div class="row" aria-label="Sélecteur de couleur">
         <label for="colorPicker">Couleur</label>
         <input id="colorPicker" type="color" value="#CC0000" />
       </div>
 
-      <!-- Police & style -->
       <div class="row" aria-label="Police">
         <label for="fontSelect">Police</label>
         <select id="fontSelect">
@@ -245,7 +254,6 @@
       </div>
 
       <div class="menu-spacer"></div>
-      <!-- Icônes en bas -->
       <div class="menu-footer">
         <button id="iconTaskBtn" class="icon-btn star" title="Ajouter/éditer des tâches" aria-label="Ajouter/éditer des tâches">⭐</button>
         <button id="iconWireBtn" class="icon-btn" title="Connecter à…" aria-label="Connecter à…">🔗</button>
@@ -255,7 +263,7 @@
     </div>
   </div>
 
-  <!-- Menu 4 (cœur) – même apparence que Menu 3 initial -->
+  <!-- Menu 4 (cœur) -->
   <div id="menuHeart" class="menu" role="menu" aria-hidden="true">
     <div class="menu-body">
       <button data-action="add">➕ Cercle principal</button>
@@ -882,7 +890,7 @@
         const sr=stageRect();
         const worldX = (ev.clientX - sr.left - camera.x)/camera.z;
         const worldY = (ev.clientY - sr.top  - camera.y)/camera.z;
-        const newLeft = worldX - offsetXw;   // libre, négatif autorisé
+        const newLeft = worldX - offsetXw;
         const newTop  = worldY - offsetYw;
 
         const dx = newLeft - prevLeft;
@@ -1044,11 +1052,9 @@
     /* Menu 1 */
     function stylePrincipalButtonFromNode(btn, node){
       const col = toHex(getComputedStyle(node).backgroundColor) || '#111827';
-      // style fixe : fond blanc + texte noir
       btn.style.backgroundColor = '#fff';
       btn.style.color = '#111827';
       btn.style.borderColor = '#e5e7eb';
-      // liseré supérieur avec la couleur du cercle
       btn.style.borderTopWidth = '4px';
       btn.style.borderTopStyle = 'solid';
       btn.style.borderTopColor = col;
@@ -1109,7 +1115,7 @@
     fileInput.addEventListener('change', async (e)=>{ const f=e.target.files?.[0]; if(!f) return; try{ const text=await f.text(); restoreState(JSON.parse(text)); } catch{ alert('Fichier invalide.'); } finally { fileInput.value=''; } });
     resetBtn.addEventListener('click',()=>{ if(!confirm("Réinitialiser l'espace de travail ?")) return; localStorage.removeItem('workspaceState'); qLines().forEach(l=>l.remove()); world.querySelectorAll('.node').forEach(n=>{ if(n!==mainNode) n.remove(); }); mainNode.style.left='calc(50% - 55px)'; mainNode.style.top='calc(50% - 55px)'; mainNode.querySelector('.label').textContent='Cercle principal'; mainNode.style.backgroundColor='var(--primary)'; idCounter=1; camera.x=camera.y=0; camera.z=1; applyCamera(); mainNode._tasks=[]; saveState(); updateAllLines(); fitLabelToNode(mainNode); showActionsPanel(false); menu2Locked=false; refreshSidebar(); });
 
-    /* Pan au bouton milieu (clic roulette) + désélection (sans fermer Menu 2) */
+    /* Pan au bouton milieu (clic roulette) + désélection contrôlée */
     (function setupStagePan(){
       let panActive=false, lastX=0,lastY=0;
       stage.addEventListener('pointerdown',(e)=>{
@@ -1120,9 +1126,14 @@
           stage.setPointerCapture?.(e.pointerId);
           return;
         }
+        // Clic gauche dans la zone vide
         if(e.button===0 && !wiring.active && !e.target.closest('.node') && !menu.contains(e.target) && !menuHeart.contains(e.target) && !actionsPanel.contains(e.target) && !document.getElementById('sidebar').contains(e.target)){
-          world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
-          currentNode=null; enableActionPanel(false);
+          if(menu2Locked){
+            // Ne pas vider la sélection ni désactiver le panneau : il reste utilisable
+          }else{
+            world.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
+            currentNode=null; enableActionPanel(false); showActionsPanel(false);
+          }
         }
         if(e.button===0 && wiring.active && !e.target.closest('.node')) stopWiring();
       });
