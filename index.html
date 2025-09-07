@@ -102,7 +102,7 @@
         0 0 64px rgba(0,234,255,.25);
     }
     .subtitle{
-      margin:0 0 40px;
+      margin:0 0 24px;
       color:var(--muted);
       font-size:clamp(16px, 2.2vw, 18px);
     }
@@ -156,10 +156,10 @@
       filter: var(--glow);
     }
     .cta:active{ transform: translateY(0) scale(.99); }
-    .cta:focus-visible{
-      outline:none;
-      box-shadow: var(--ring);
-    }
+    .cta:focus-visible{ outline:none; box-shadow: var(--ring); }
+
+    .row{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px}
+    .small{font-size:12px; opacity:.85}
 
     @media (prefers-reduced-motion: reduce){
       *{animation: none!important; transition: none!important}
@@ -175,31 +175,72 @@
       <p class="subtitle">Tableau de bord — Portail principal de votre espace de travail.</p>
 
       <div class="panel" role="group" aria-label="Navigation principale">
-        <!-- Ouvre SPHAIRA dans un nouvel onglet/fenêtre -->
-        <a
-          class="cta"
-          href="https://mistergob.github.io/sphaira/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Ouvrir SPHAIRA dans un nouvel onglet"
-        >
+        <!-- Auth -->
+        <div class="row">
+          <button class="cta" id="loginGoogle">Se connecter avec Google</button>
+          <button class="cta" id="loginMicrosoft">Se connecter avec Microsoft</button>
+          <button class="cta" id="logout" style="display:none">Se déconnecter</button>
+        </div>
+        <div class="small" id="who">Non connecté</div>
+
+        <!-- Liens modules -->
+        <a class="cta" href="https://mistergob.github.io/sphaira/" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir SPHAIRA dans un nouvel onglet">
           <span class="dot" aria-hidden="true"></span>
           <span>Entrer dans SPHAIRA</span>
         </a>
-
-        <!-- NOUVEAU : Ouvre ORIS (Agenda) dans un nouvel onglet/fenêtre -->
-        <a
-          class="cta"
-          href="https://mistergob.github.io/Oris/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Ouvrir ORIS (Agenda) dans un nouvel onglet"
-        >
+        <a class="cta" href="https://mistergob.github.io/Oris/" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir ORIS (Agenda) dans un nouvel onglet">
           <span class="dot" aria-hidden="true"></span>
           <span>Ouvrir ORIS — Agenda</span>
+        </a>
+        <a class="cta" href="https://mistergob.github.io/Nexus/" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir NEXUS (Mails) dans un nouvel onglet">
+          <span class="dot" aria-hidden="true"></span>
+          <span>Ouvrir NEXUS — Mails</span>
         </a>
       </div>
     </main>
   </div>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ====== RENSEIGNE CES DEUX VALEURS ======
+    const SUPABASE_URL = "https://xxx.supabase.co";          // <-- à remplacer
+    const SUPABASE_ANON_KEY = "eyJhbGciOi...";                // <-- à remplacer
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const loginGoogleBtn = document.getElementById('loginGoogle');
+    const loginMsBtn     = document.getElementById('loginMicrosoft');
+    const logoutBtn      = document.getElementById('logout');
+    const whoSpan        = document.getElementById('who');
+
+    function show(session){
+      const user = session?.user || null;
+      if(user){
+        const name = user.user_metadata?.full_name || user.email || 'Connecté';
+        whoSpan.textContent = `Connecté : ${name}`;
+        loginGoogleBtn.style.display = 'none';
+        loginMsBtn.style.display     = 'none';
+        logoutBtn.style.display      = '';
+      }else{
+        whoSpan.textContent = 'Non connecté';
+        loginGoogleBtn.style.display = '';
+        loginMsBtn.style.display     = '';
+        logoutBtn.style.display      = 'none';
+      }
+    }
+
+    loginGoogleBtn.onclick = () =>
+      supabase.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.href } });
+
+    loginMsBtn.onclick = () =>
+      supabase.auth.signInWithOAuth({ provider:'azure', options:{ redirectTo: location.href, scopes:'email' } });
+
+    logoutBtn.onclick = async () => { await supabase.auth.signOut(); show(null); };
+
+    // État initial + abonnement
+    supabase.auth.getSession().then(({ data }) => show(data.session));
+    supabase.auth.onAuthStateChange((_e, session) => show(session));
+  </script>
 </body>
 </html>
