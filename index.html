@@ -90,6 +90,28 @@
     /* Croix fermeture Menu 2 */
     #closeMenu2{position:sticky; top:0; float:right; width:26px; height:26px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-weight:700; margin-left:auto}
 
+    /* *** HARMONISATION ** Menu 2 uniquement (look & feel Menu 3) *** */
+    #actions .side-item{
+      width:100%;
+      appearance:none;
+      background:transparent;
+      border:0;
+      text-align:left;
+      padding:12px 14px;
+      font-size:14px;
+      font-weight:600;
+      color:var(--text);
+      border-radius:10px;
+      cursor:pointer;
+      margin-bottom:6px;
+      transition:background .12s ease, opacity .12s ease;
+    }
+    #actions .side-item:hover{ background:#f3f4f6 }
+    #actions .side-item:focus-visible{ outline:2px solid #2563eb; outline-offset:2px }
+    #actions .side-item:disabled{ opacity:.5; cursor:not-allowed }
+    #actions .side-item.danger{ color:#b91c1c }
+    #actions .side-item.danger:hover{ background:#fee2e2 }
+
     /* Boutons flottants bas-droite */
     .home-btn{position:fixed;bottom:16px;width:44px;height:44px;border-radius:9999px;border:1px solid #e5e7eb;background:#fff;box-shadow:0 8px 24px var(--ring);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;z-index:65}
     #homeBtn{right:16px}
@@ -160,7 +182,7 @@
       </div>
     </div>
     <button id="actCenter" class="side-item" type="button">🎯 Centrer sur le cercle</button>
-    <button id="actDelete" class="side-item" type="button" style="background:#b91c1c">🗑️ Supprimer le cercle</button>
+    <button id="actDelete" class="side-item danger" type="button">🗑️ Supprimer le cercle</button>
   </aside>
 
   <!-- Zone schéma -->
@@ -1021,16 +1043,16 @@
 
     /* Menu 1 */
     function stylePrincipalButtonFromNode(btn, node){
-  const col = toHex(getComputedStyle(node).backgroundColor) || '#111827';
-  // style fixe : fond blanc + texte noir
-  btn.style.backgroundColor = '#fff';
-  btn.style.color = '#111827';
-  btn.style.borderColor = '#e5e7eb';
-  // liseré supérieur avec la couleur du cercle
-  btn.style.borderTopWidth = '4px';
-  btn.style.borderTopStyle = 'solid';
-  btn.style.borderTopColor = col;
-}
+      const col = toHex(getComputedStyle(node).backgroundColor) || '#111827';
+      // style fixe : fond blanc + texte noir
+      btn.style.backgroundColor = '#fff';
+      btn.style.color = '#111827';
+      btn.style.borderColor = '#e5e7eb';
+      // liseré supérieur avec la couleur du cercle
+      btn.style.borderTopWidth = '4px';
+      btn.style.borderTopStyle = 'solid';
+      btn.style.borderTopColor = col;
+    }
 
     function populateChildren(principalId, ul){
       ul.innerHTML='';
@@ -1130,7 +1152,7 @@
       const wx = (mx - camera.x)/camera.z;
       const wy = (my - camera.y)/camera.z;
       const factor = Math.exp(-e.deltaY * 0.001);
-      const zNew = clamp(camera.z * factor, Z_MIN, Z_MAX);
+      const zNew = (Math.min(Math.max(camera.z * factor, Z_MIN), Z_MAX));
       camera.x = mx - wx * zNew;
       camera.y = my - wy * zNew;
       camera.z = zNew;
@@ -1230,4 +1252,3 @@
   </script>
 </body>
 </html>
-
