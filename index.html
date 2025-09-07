@@ -203,21 +203,31 @@
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // ====== RENSEIGNE CES DEUX VALEURS ======
+    // ====== CONFIG SUPABASE (tes valeurs) ======
     const SUPABASE_URL = "https://jlfvbggzdkkwrmpsamvz.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZnZiZ2d6ZGtrd3JtcHNhbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNjUyNjMsImV4cCI6MjA3Mjg0MTI2M30.kDbtNVQfHEVxRbA8jsAfLu7-6kDioTCG-nWVQ91gJIs";
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Crée le client (persistSession et autoRefresh activés par défaut, on les pose explicitement)
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
 
+    // Elements UI
     const loginGoogleBtn = document.getElementById('loginGoogle');
     const loginMsBtn     = document.getElementById('loginMicrosoft');
     const logoutBtn      = document.getElementById('logout');
     const whoSpan        = document.getElementById('who');
 
+    // Petite aide UX pendant l’appel OAuth
+    function setAuthBusy(busy){
+      [loginGoogleBtn, loginMsBtn, logoutBtn].forEach(b=> b.disabled = !!busy);
+    }
+
+    // Affiche l'état
     function show(session){
       const user = session?.user || null;
       if(user){
-        const name = user.user_metadata?.full_name || user.email || 'Connecté';
+        const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'Connecté';
         whoSpan.textContent = `Connecté : ${name}`;
         loginGoogleBtn.style.display = 'none';
         loginMsBtn.style.display     = 'none';
@@ -230,18 +240,52 @@
       }
     }
 
-    loginGoogleBtn.onclick = () =>
-      supabase.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.href } });
+    // Redirige vers la même page (sans query) après OAuth
+    const SITE_URL = location.origin + location.pathname;
 
-    loginMsBtn.onclick = () =>
-      supabase.auth.signInWithOAuth({ provider:'azure', options:{ redirectTo: location.href, scopes:'email' } });
+    async function signIn(provider, scopes){
+      try{
+        setAuthBusy(true);
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: { redirectTo: SITE_URL, scopes }
+        });
+        if(error){
+          alert('Connexion impossible : ' + error.message);
+          setAuthBusy(false);
+        }
+        // En cas de succès, le navigateur est redirigé par le provider (donc pas de suite ici).
+      }catch(err){
+        alert('Erreur inattendue : ' + (err?.message || err));
+        setAuthBusy(false);
+      }
+    }
 
-    logoutBtn.onclick = async () => { await supabase.auth.signOut(); show(null); };
+    // Boutons
+    loginGoogleBtn.onclick   = () => signIn('google', 'email profile openid');
+    // Pour Microsoft, le provider Supabase est "azure"
+    loginMsBtn.onclick       = () => signIn('azure', 'email openid profile');
+    logoutBtn.onclick        = async () => { await supabase.auth.signOut(); show(null); };
+
+    // Nettoyage URL après retour OAuth (supprime ?code=...&state=...)
+    (function cleanOAuthParams(){
+      const q = new URLSearchParams(location.search);
+      if(q.has('code') || q.has('state') || q.has('error_description')){
+        history.replaceState({}, document.title, SITE_URL);
+      }
+    })();
 
     // État initial + abonnement
     supabase.auth.getSession().then(({ data }) => show(data.session));
-    supabase.auth.onAuthStateChange((_e, session) => show(session));
+    supabase.auth.onAuthStateChange((_e, session) => {
+      show(session);
+      setAuthBusy(false);
+    });
+
+    // Optionnel : avertit si la page est ouverte en file:// (OAuth nécessite https)
+    if(location.protocol === 'file:'){
+      whoSpan.textContent = 'Ouvre cette page via HTTPS (GitHub Pages, Netlify…) pour que la connexion fonctionne.';
+    }
   </script>
 </body>
 </html>
-
