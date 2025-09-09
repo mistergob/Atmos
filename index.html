@@ -112,6 +112,7 @@
     /* ========= SSO ATMOS (Supabase) =========
        - Même storageKey partout -> même session sur le même origin
        - Retour automatique vers ?r=... après connexion
+       - Google : on demande aussi les scopes Gmail pour NEXUS
     ========================================= */
 
     // Même REF/clé que dans NEXUS/ORIS/SPHAIRA
@@ -169,15 +170,17 @@
       }
     })();
 
-    async function signIn(provider, scopes){
+    // --- Helper login OAuth ---
+    async function signIn(provider, scopes, queryParams){
       try{
         setAuthBusy(true);
         const { error } = await supabase.auth.signInWithOAuth({
           provider,
           options: {
-            redirectTo: SITE_URL,            // revient ici après OAuth
-            scopes: scopes || 'openid email profile'
-            // (facultatif) queryParams: { prompt:'consent' }
+            redirectTo: SITE_URL,             // revient ici après OAuth
+            scopes: scopes || 'openid email profile',
+            // Ces paramètres sont transmis au provider (Google) :
+            queryParams: queryParams || {}
           }
         });
         if(error){
@@ -190,9 +193,18 @@
       }
     }
 
-    loginGoogleBtn.onclick = ()=> signIn('google', 'openid email profile');
+    // 🔐 GOOGLE : on inclut les scopes Gmail pour que NEXUS puisse lire/envoyer sans reconsent
+    const GMAIL_SCOPES =
+      'openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
+
+    // include_granted_scopes => ajoute les nouveaux scopes si l’utilisateur avait déjà consenti partiellement
+    // access_type=offline => permet au provider de délivrer un refresh token si applicable
+    loginGoogleBtn.onclick = () =>
+      signIn('google', GMAIL_SCOPES, { include_granted_scopes: 'true', access_type: 'offline' });
+
     // Provider Microsoft côté Supabase = "azure"
-    loginMsBtn.onclick     = ()=> signIn('azure',  'openid email profile');
+    loginMsBtn.onclick = () =>
+      signIn('azure', 'openid email profile');
 
     logoutBtn.onclick = async ()=>{
       await supabase.auth.signOut();
