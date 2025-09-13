@@ -5,18 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ATMOS</title>
   <meta name="color-scheme" content="dark light">
-  <!-- CSP (optionnelle) -->
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' https://images.unsplash.com data:;
-                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-                 font-src https://fonts.gstatic.com;
-                 script-src 'self' https://cdn.jsdelivr.net;
-                 connect-src 'self' https://*.supabase.co;">
-  <!-- Polices -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-
   <style>
     :root{
       --primary:#00eaff; --primary-2:#8a2be2; --text:#e6f7ff; --muted:#9fb3c8;
@@ -84,10 +73,6 @@
     .cta:focus-visible{ outline:none; box-shadow:var(--ring) }
     .row{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px}
     .small{font-size:12px; opacity:.85}
-    .busy{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.35); backdrop-filter:blur(2px); z-index:5}
-    .busy[data-show="1"]{display:grid}
-    .spinner{width:48px; height:48px; border-radius:50%; border:4px solid rgba(255,255,255,.2); border-top-color:#fff; animation:spin 1s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
     @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
   </style>
 </head>
@@ -98,16 +83,16 @@
       <h1 class="title">ATMOS</h1>
       <p class="subtitle">Tableau de bord — Portail principal de votre espace de travail.</p>
 
-      <div class="panel" role="group" aria-label="Navigation principale" aria-live="polite" aria-busy="false">
+      <div class="panel" role="group" aria-label="Navigation principale">
         <!-- Auth -->
         <div class="row">
-          <button class="cta" type="button" id="loginGoogle">Se connecter avec Google</button>
-          <button class="cta" type="button" id="loginMicrosoft">Se connecter avec Microsoft</button>
-          <button class="cta" type="button" id="logout" style="display:none">Se déconnecter</button>
+          <button class="cta" id="loginGoogle">Se connecter avec Google</button>
+          <button class="cta" id="loginMicrosoft">Se connecter avec Microsoft</button>
+          <button class="cta" id="logout" style="display:none">Se déconnecter</button>
         </div>
-        <div class="small" id="who" aria-live="polite">Non connecté</div>
+        <div class="small" id="who">Non connecté</div>
 
-        <!-- Liens modules -->
+        <!-- Liens modules (même origin => session partagée via localStorage) -->
         <a class="cta" href="https://mistergob.github.io/sphaira/" target="_blank" rel="noopener noreferrer">
           <span class="dot" aria-hidden="true"></span><span>Entrer dans SPHAIRA</span>
         </a>
@@ -121,81 +106,46 @@
     </main>
   </div>
 
-  <!-- Busy overlay -->
-  <div class="busy" id="busy" role="status" aria-live="assertive" aria-label="Opération en cours">
-    <div class="spinner" aria-hidden="true"></div>
-  </div>
-
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    /* ========= ATMOS (SSO centralisé, sans auto-redirection) =========
-       - Pas de redirection vers un module sauf si ?r= est présent (cas SSO depuis un module)
-       - Session partagée via localStorage + storageKey identique (même origin)
-       - Google: scopes Gmail + Calendar dès le bouton, sans prompt forcé
-    ================================================================== */
+    /* ========= SSO ATMOS (Supabase) =========
+       - Même storageKey partout -> même session sur le même origin
+       - Retour automatique vers ?r=... après connexion
+       - Google : on demande aussi les scopes Gmail pour NEXUS
+    ========================================= */
 
-    // === Config projet (identique NEXUS/ORIS/SPHAIRA) ===
+    // Même REF/clé que dans NEXUS/ORIS/SPHAIRA
     const PROJECT_REF = "jlfvbggzdkkwrmpsamvz";
     const SUPABASE_URL = `https://${PROJECT_REF}.supabase.co`;
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZnZiZ2d6ZGtrd3JtcHNhbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNjUyNjMsImV4cCI6MjA3Mjg0MTI2M30.kDbtNVQfHEVxRbA8jsAfLu7-6kDioTCG-nWVQ91gJIs";
+
+    // IMPORTANT : storageKey identique dans tous les modules
     const STORAGE_KEY = `sb-${PROJECT_REF}-auth-token`;
 
-    // === Scopes Google (centralisés) ===
-    const FULL_GOOGLE_SCOPES = [
-      "openid","email","profile",
-      "https://www.googleapis.com/auth/gmail.readonly",
-      "https://www.googleapis.com/auth/gmail.send",
-      "https://www.googleapis.com/auth/calendar"
-    ].join(" ");
-
-    // === Allowlist des destinations (?r=) ===
-    const ALLOWLIST = [
-      "https://mistergob.github.io/sphaira/",
-      "https://mistergob.github.io/Oris/",
-      "https://mistergob.github.io/Nexus/"
-    ];
-    function safeTarget(url){
-      try{
-        const u = new URL(url, location.origin);
-        return ALLOWLIST.some(p => u.href.startsWith(p)) ? u.href : null;
-      }catch{ return null; }
-    }
-
-    // === Supabase client ===
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        storage: window.localStorage,   // <-- partage de session entre modules (même origin)
+        storage: window.localStorage,
         storageKey: STORAGE_KEY
       }
     });
 
-    // === UI refs ===
+    // UI
     const loginGoogleBtn = document.getElementById('loginGoogle');
     const loginMsBtn     = document.getElementById('loginMicrosoft');
     const logoutBtn      = document.getElementById('logout');
     const whoSpan        = document.getElementById('who');
-    const panel          = document.querySelector('.panel');
-    const busyOverlay    = document.getElementById('busy');
 
-    function setAuthBusy(busy){
-      [loginGoogleBtn, loginMsBtn, logoutBtn].forEach(b=> b.disabled = !!busy);
-      panel?.setAttribute('aria-busy', busy ? 'true' : 'false');
-      busyOverlay?.setAttribute('data-show', busy ? '1' : '0');
-    }
-
-    function displayName(u){
-      const meta = u?.user_metadata || {};
-      return meta.full_name || meta.name || (u?.email?.split('@')[0]) || 'Connecté';
-    }
+    function setAuthBusy(busy){ [loginGoogleBtn, loginMsBtn, logoutBtn].forEach(b=> b.disabled = !!busy); }
 
     function show(session){
       const user = session?.user || null;
       if(user){
-        whoSpan.textContent = `Connecté : ${displayName(user)}`;
+        const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'Connecté';
+        whoSpan.textContent = `Connecté : ${name}`;
         loginGoogleBtn.style.display = 'none';
         loginMsBtn.style.display     = 'none';
         logoutBtn.style.display      = '';
@@ -207,55 +157,29 @@
       }
     }
 
-    // === Gestion ?r= (redirige UNIQUEMENT si un module l’a demandé) ===
+    // URL de retour (si ATMOS appelé par un module avec ?r=...)
     const SITE_URL = location.origin + location.pathname;
-    const RT_STORE = window.sessionStorage;   // sessionStorage pour éviter les redirections “collantes”
     const RETURN_KEY = 'atmos:returnUrl';
 
-    // Si on arrive “à froid” sans ?r= ni params OAuth → on nettoie tout résidu
-    (function clearStaleReturnIfColdVisit(){
-      const q = new URLSearchParams(location.search);
-      const hasOAuth = q.has('code') || q.has('state') || q.has('error') || q.has('error_description');
-      if(!q.has('r') && !hasOAuth){
-        try{ RT_STORE.removeItem(RETURN_KEY); }catch{}
-      }
-    })();
-
-    // Capture ?r= si présent (cas: module qui envoie vers ATMOS pour login)
+    // Capture ?r= au chargement (et garde la cible à travers la redirection OAuth)
     (function storeReturnUrlFromQuery(){
       const q = new URLSearchParams(location.search);
       const r = q.get('r');
       if(r){
-        try{ RT_STORE.setItem(RETURN_KEY, decodeURIComponent(r)); }catch{}
+        try{ localStorage.setItem(RETURN_KEY, decodeURIComponent(r)); }catch{}
       }
     })();
 
-    function cleanOAuthParams(){
-      const q = new URLSearchParams(location.search);
-      if(q.has('code') || q.has('state') || q.has('error') || q.has('error_description')){
-        history.replaceState({}, document.title, SITE_URL);
-      }
-    }
-
-    async function maybeRedirectToReturn(session){
-      if(!session) return;
-      const raw = RT_STORE.getItem(RETURN_KEY);
-      if(raw){
-        RT_STORE.removeItem(RETURN_KEY);
-        const target = safeTarget(raw);
-        if(target) location.href = target;
-      }
-    }
-
-    // === Login helpers ===
+    // --- Helper login OAuth ---
     async function signIn(provider, scopes, queryParams){
       try{
         setAuthBusy(true);
         const { error } = await supabase.auth.signInWithOAuth({
           provider,
           options: {
-            redirectTo: SITE_URL,                       // revient sur ATMOS
+            redirectTo: SITE_URL,             // revient ici après OAuth
             scopes: scopes || 'openid email profile',
+            // Ces paramètres sont transmis au provider (Google) :
             queryParams: queryParams || {}
           }
         });
@@ -269,27 +193,47 @@
       }
     }
 
-    // Boutons : on demande tout (Gmail + Agenda) au moment du clic, sans prompt forcé
-    loginGoogleBtn.onclick = () => signIn('google', FULL_GOOGLE_SCOPES, {
-      include_granted_scopes: 'true',
-      access_type: 'offline'
-      // pas de prompt: 'consent' -> Google ne reprompt que si nécessaire
-    });
+    // 🔐 GOOGLE : on inclut les scopes Gmail pour que NEXUS puisse lire/envoyer sans reconsent
+    const GMAIL_SCOPES =
+      'openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
 
-    loginMsBtn.onclick = () => signIn('azure', 'openid email profile');
+    // include_granted_scopes => ajoute les nouveaux scopes si l’utilisateur avait déjà consenti partiellement
+    // access_type=offline => permet au provider de délivrer un refresh token si applicable
+    loginGoogleBtn.onclick = () =>
+      signIn('google', GMAIL_SCOPES, { include_granted_scopes: 'true', access_type: 'offline' });
+
+    // Provider Microsoft côté Supabase = "azure"
+    loginMsBtn.onclick = () =>
+      signIn('azure', 'openid email profile');
 
     logoutBtn.onclick = async ()=>{
-      setAuthBusy(true);
       await supabase.auth.signOut();
       show(null);
-      setAuthBusy(false);
     };
 
-    // État initial + abonnement (aucune redirection si pas de RETURN_KEY)
+    // Nettoie les paramètres OAuth (?code=...&state=...) une fois la session récupérée
+    function cleanOAuthParams(){
+      const q = new URLSearchParams(location.search);
+      if(q.has('code') || q.has('state') || q.has('error_description')){
+        history.replaceState({}, document.title, SITE_URL);
+      }
+    }
+
+    // Redirection automatique vers la cible demandée (?r=...) dès qu'on a une session
+    async function maybeRedirectToReturn(session){
+      if(!session) return;
+      const target = localStorage.getItem(RETURN_KEY);
+      if(target){
+        localStorage.removeItem(RETURN_KEY);
+        location.href = target;
+      }
+    }
+
+    // État initial + abonnement
     supabase.auth.getSession().then(({ data }) => {
       show(data.session);
       cleanOAuthParams();
-      maybeRedirectToReturn(data.session); // ne fait rien si RETURN_KEY absent
+      maybeRedirectToReturn(data.session);
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
