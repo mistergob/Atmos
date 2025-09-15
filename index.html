@@ -112,6 +112,8 @@
     /* ========= SSO ATMOS (Supabase) =========
        - Même storageKey partout -> même session sur le même origin
        - Retour automatique vers ?r=... après connexion
+       - Demande centralisée des scopes Google (Gmail + Calendar)
+       - Heartbeat public pour que les modules détectent qu'un onglet ATMOS connecté est ouvert
     ========================================= */
 
     // Même REF/clé que dans NEXUS/ORIS/SPHAIRA
@@ -121,6 +123,24 @@
 
     // IMPORTANT : storageKey identique dans tous les modules
     const STORAGE_KEY = `sb-${PROJECT_REF}-auth-token`;
+
+    // Scopes Google centralisés (consentement unique côté ATMOS)
+    const GOOGLE_OAUTH_SCOPES = [
+      'openid','email','profile',
+      'https://www.googleapis.com/auth/gmail.readonly',
+      'https://www.googleapis.com/auth/gmail.send',
+      'https://www.googleapis.com/auth/gmail.modify',
+      'https://www.googleapis.com/auth/calendar'
+    ].join(' ');
+
+    // Heartbeat (détection d'onglet ATMOS ouvert + statut online/offline)
+    const HEARTBEAT_CHANNEL = 'ATMOS_HEARTBEAT';
+    const HEARTBEAT_LOCAL_KEY = 'atmos:beatAt';
+    const HEARTBEAT_STATUS_KEY = 'atmos:status'; // 'online' | 'offline'
+    const HEARTBEAT_INTERVAL = 10000; // 10s
+
+    const SITE_URL = location.origin + location.pathname;
+    const RETURN_KEY = 'atmos:returnUrl';
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
@@ -140,7 +160,10 @@
 
     function setAuthBusy(busy){ [loginGoogleBtn, loginMsBtn, logoutBtn].forEach(b=> b.disabled = !!busy); }
 
+    let currentSession = null; // suivi pour le heartbeat
+
     function show(session){
+      currentSession = session || null;
       const user = session?.user || null;
       if(user){
         const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'Connecté';
@@ -156,17 +179,32 @@
       }
     }
 
-    // URL de retour (si ATMOS appelé par un module avec ?r=...)
-    const SITE_URL = location.origin + location.pathname;
-    const RETURN_KEY = 'atmos:returnUrl';
+    // Émet un heartbeat périodique + statut online/offline
+    function startHeartbeat(){
+      let bc = null;
+      try{ bc = new BroadcastChannel(HEARTBEAT_CHANNEL); }catch(_){ bc = null; }
 
-    // Capture ?r= au chargement (et garde la cible à travers la redirection OAuth)
+      const tick = ()=>{
+        const online = !!currentSession; // en ligne = session ATMOS valide
+        const now = Date.now().toString();
+        try{
+          localStorage.setItem(HEARTBEAT_LOCAL_KEY, now);
+          localStorage.setItem(HEARTBEAT_STATUS_KEY, online ? 'online' : 'offline');
+        }catch(_){/* quota privé */}
+        if(bc){
+          try{ bc.postMessage(online ? 'ping-online' : 'ping-offline'); }catch(_){}
+        }
+      };
+
+      tick(); // premier ping immédiat
+      setInterval(tick, HEARTBEAT_INTERVAL);
+    }
+
+    // URL de retour (si ATMOS appelé par un module avec ?r=...)
     (function storeReturnUrlFromQuery(){
       const q = new URLSearchParams(location.search);
       const r = q.get('r');
-      if(r){
-        try{ localStorage.setItem(RETURN_KEY, decodeURIComponent(r)); }catch{}
-      }
+      if(r){ try{ localStorage.setItem(RETURN_KEY, decodeURIComponent(r)); }catch{} }
     })();
 
     async function signIn(provider, scopes){
@@ -176,8 +214,11 @@
           provider,
           options: {
             redirectTo: SITE_URL,            // revient ici après OAuth
-            scopes: scopes || 'openid email profile'
-            // (facultatif) queryParams: { prompt:'consent' }
+            scopes: scopes || 'openid email profile',
+            queryParams: {
+              include_granted_scopes: 'true'
+              // prompt: 'consent' // décommente si tu veux forcer l'écran de consentement
+            }
           }
         });
         if(error){
@@ -190,8 +231,8 @@
       }
     }
 
-    loginGoogleBtn.onclick = ()=> signIn('google', 'openid email profile');
-    // Provider Microsoft côté Supabase = "azure"
+    loginGoogleBtn.onclick = ()=> signIn('google', GOOGLE_OAUTH_SCOPES);
+    // Provider Microsoft côté Supabase = "azure" (laisse les scopes par défaut côté Microsoft)
     loginMsBtn.onclick     = ()=> signIn('azure',  'openid email profile');
 
     logoutBtn.onclick = async ()=>{
@@ -230,6 +271,9 @@
       cleanOAuthParams();
       maybeRedirectToReturn(session);
     });
+
+    // Lancer le heartbeat dès le chargement
+    startHeartbeat();
 
     if(location.protocol === 'file:'){
       whoSpan.textContent = 'Ouvre via HTTPS (GitHub Pages, Netlify…) pour que la connexion fonctionne.';
