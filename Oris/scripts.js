@@ -3,7 +3,7 @@
    (extraction du JS depuis la page d’origine)
    ========================= */
 
-// ------- État global GAPI (Google Calendar) -------
+// ------- État global GAPI (Google Calendar) -----
 window.__gapiReady = false;
 window.__gapiError = null;
 
