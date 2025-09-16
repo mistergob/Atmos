@@ -3,75 +3,46 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ATMOS — Hub</title>
-  <meta name="color-scheme" content="dark light" />
-
-  <!-- Polices ATMOS -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <title>ATMOS</title>
+  <meta name="color-scheme" content="dark light">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 
-  <!-- Feuille de style principale (à créer à la racine) -->
-  <link rel="stylesheet" href="./styles.css" />
+  <!-- CSS externe -->
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="./" aria-label="Accueil ATMOS">
-      <span class="logo">ATMOS</span><span class="badge">v1</span>
-    </a>
+  <div class="wrap">
+    <div class="aura" aria-hidden="true"></div>
+    <main>
+      <h1 class="title">ATMOS</h1>
+      <p class="subtitle">Tableau de bord — Portail principal de votre espace de travail.</p>
 
-    <nav class="main-nav" aria-label="Modules">
-      <a href="./Sphaera/">SPHAIRA</a>
-      <a href="./Nexus/">NEXUS</a>
-      <a href="./Oris/">ORIS</a>
-    </nav>
+      <div class="panel" role="group" aria-label="Navigation principale">
+        <!-- Auth -->
+        <div class="row">
+          <button class="cta" id="loginGoogle">Se connecter avec Google</button>
+          <button class="cta" id="loginMicrosoft">Se connecter avec Microsoft</button>
+          <button class="cta" id="logout" style="display:none">Se déconnecter</button>
+        </div>
+        <div class="small" id="who">Non connecté</div>
 
-    <div class="header-actions">
-      <!-- Placeholder SSO Google : le JS branchera le clic -->
-      <button id="btn-google" class="btn primary" type="button" data-client-id="">Se connecter avec Google</button>
-    </div>
-  </header>
-
-  <main id="app" class="container">
-    <section id="dashboard" class="card">
-      <h1>Bienvenue dans ATMOS</h1>
-      <p>ATMOS est le hub des modules <strong>SPHAIRA</strong>, <strong>NEXUS</strong> et <strong>ORIS</strong>. Utilisez la navigation ci-dessus ou les cartes ci-dessous.</p>
-
-      <div class="grid modules">
-        <a class="module-card" href="./Sphaera/">
-          <h2>SPHAIRA</h2>
-          <p>Espace de travail schématique.</p>
+        <!-- Liens modules -->
+        <a class="cta" href="https://mistergob.github.io/sphaira/" target="_blank" rel="noopener noreferrer">
+          <span class="dot" aria-hidden="true"></span><span>Entrer dans SPHAIRA</span>
         </a>
-        <a class="module-card" href="./Nexus/">
-          <h2>NEXUS</h2>
-          <p>Boîte mail — affichage vertical.</p>
+        <a class="cta" href="https://mistergob.github.io/Oris/" target="_blank" rel="noopener noreferrer">
+          <span class="dot" aria-hidden="true"></span><span>Ouvrir ORIS — Agenda</span>
         </a>
-        <a class="module-card" href="./Oris/">
-          <h2>ORIS</h2>
-          <p>Agenda connecté.</p>
+        <a class="cta" href="https://mistergob.github.io/Nexus/" target="_blank" rel="noopener noreferrer">
+          <span class="dot" aria-hidden="true"></span><span>Ouvrir NEXUS — Mails</span>
         </a>
       </div>
-    </section>
+    </main>
+  </div>
 
-    <section id="quick-actions" class="card">
-      <h2>Actions rapides</h2>
-      <div class="actions-grid">
-        <button class="btn ghost" data-action="open-sphaera">Ouvrir SPHAIRA</button>
-        <button class="btn ghost" data-action="open-nexus">Ouvrir NEXUS</button>
-        <button class="btn ghost" data-action="open-oris">Ouvrir ORIS</button>
-      </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <small>© <span id="year"></span> SAP Conseils — ATMOS Suite</small>
-  </footer>
-
-  <!-- Toast / Dialog simple -->
-  <dialog id="toast" class="toast" aria-live="polite"></dialog>
-
-  <!-- Script principal (à créer à la racine) -->
+  <!-- Supabase JS (chargé avant notre script) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- JS externe -->
   <script defer src="./scripts.js"></script>
-  <noscript>Veuillez activer JavaScript pour profiter pleinement d’ATMOS.</noscript>
 </body>
 </html>
