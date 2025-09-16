@@ -9,7 +9,7 @@
   --card: rgba(8,12,28,.55);
   --ok:#16a34a; --warn:#f59e0b; --danger:#ef4444;
   --sidebar-w: 340px;
-  --toolbar-h: 64px;
+
 }
 *{box-sizing:border-box}
 html,body{height:100%}
