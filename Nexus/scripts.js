@@ -3,7 +3,7 @@
    ========================= */
 'use strict';
 
-/* ---------- Pré-init GAPI (Gmail) ---------- */
+/* ---------- Pré-init GAPI (Gmail) -------- */
 window.__gapiReady = false;
 window.__gapiError = null;
 window.onGapiLoad = async function onGapiLoad(){
