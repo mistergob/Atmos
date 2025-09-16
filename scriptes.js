@@ -1,154 +1,127 @@
-/* ===========================
-   ATMOS — scripts.js
-   =========================== */
-(() => {
-  "use strict";
+/* ========= SSO ATMOS (Supabase) =========
+   - Même storageKey partout -> même session sur le même origin
+   - Retour automatique vers ?r=... après connexion
+========================================= */
 
-  // Helpers
-  const $  = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+// Même REF/clé que dans NEXUS/ORIS/SPHAIRA
+const PROJECT_REF = "jlfvbggzdkkwrmpsamvz";
+const SUPABASE_URL = `https://${PROJECT_REF}.supabase.co`;
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZnZiZ2d6ZGtrd3JtcHNhbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNjUyNjMsImV4cCI6MjA3Mjg0MTI2M30.kDbtNVQfHEVxRbA8jsAfLu7-6kDioTCG-nWVQ91gJIs";
 
-  // Elements (tous optionnels pour éviter les erreurs si absents)
-  const btnGoogle = $("#btn-google");
-  const toast     = $("#toast");
-  const yearEl    = $("#year");
+// IMPORTANT : storageKey identique dans tous les modules
+const STORAGE_KEY = `sb-${PROJECT_REF}-auth-token`;
 
-  // --- Footer: année courante
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-  // --- Toast utilitaire (dialog)
-  function showToast(message = "", timeout = 3000) {
-    if (!toast) return alert(message); // fallback très simple
-    try {
-      toast.textContent = message;
-      if (typeof toast.show === "function") {
-        if (toast.open) toast.close();
-        toast.show();
-      } else {
-        // navigateurs anciens : simulateur d'ouverture
-        toast.setAttribute("open", "");
-      }
-      window.clearTimeout(showToast._t);
-      showToast._t = window.setTimeout(() => {
-        try { toast.close(); } catch { toast.removeAttribute("open"); }
-      }, timeout);
-    } catch {
-      // dernier recours
-      alert(message);
-    }
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: window.localStorage,
+    storageKey: STORAGE_KEY
   }
+});
 
-  // --- Navigation "Actions rapides"
-  const actionMap = {
-    "open-sphaera": "./Sphaera/",
-    "open-nexus":   "./Nexus/",
-    "open-oris":    "./Oris/",
-  };
+// UI
+const loginGoogleBtn = document.getElementById('loginGoogle');
+const loginMsBtn     = document.getElementById('loginMicrosoft');
+const logoutBtn      = document.getElementById('logout');
+const whoSpan        = document.getElementById('who');
 
-  $$(".actions-grid [data-action]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const action = btn.getAttribute("data-action");
-      const target = actionMap[action];
-      if (target) window.location.href = target;
-    });
-  });
+function setAuthBusy(busy){
+  [loginGoogleBtn, loginMsBtn, logoutBtn].forEach(b=> b && (b.disabled = !!busy));
+}
 
-  // --- Stockage de session (partagé sur les modules via localStorage)
-  const SESSION_KEY = "atmos_session";
-  function setSession(obj) {
-    try { localStorage.setItem(SESSION_KEY, JSON.stringify(obj)); } catch {}
+function show(session){
+  const user = session?.user || null;
+  if(user){
+    const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'Connecté';
+    if (whoSpan) whoSpan.textContent = `Connecté : ${name}`;
+    if (loginGoogleBtn) loginGoogleBtn.style.display = 'none';
+    if (loginMsBtn)     loginMsBtn.style.display     = 'none';
+    if (logoutBtn)      logoutBtn.style.display      = '';
+  }else{
+    if (whoSpan) whoSpan.textContent = 'Non connecté';
+    if (loginGoogleBtn) loginGoogleBtn.style.display = '';
+    if (loginMsBtn)     loginMsBtn.style.display     = '';
+    if (logoutBtn)      logoutBtn.style.display      = 'none';
   }
-  function getSession() {
-    try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch { return null; }
+}
+
+// URL de retour (si ATMOS appelé par un module avec ?r=...)
+const SITE_URL = location.origin + location.pathname;
+const RETURN_KEY = 'atmos:returnUrl';
+
+// Capture ?r= au chargement (et garde la cible à travers la redirection OAuth)
+(function storeReturnUrlFromQuery(){
+  const q = new URLSearchParams(location.search);
+  const r = q.get('r');
+  if(r){
+    try{ localStorage.setItem(RETURN_KEY, decodeURIComponent(r)); }catch{}
   }
-  function clearSession() {
-    try { localStorage.removeItem(SESSION_KEY); } catch {}
-  }
-
-  // --- Auth Google (progressive enhancement)
-  async function loadGoogleIdentity() {
-    if (window.google?.accounts?.id) return; // déjà chargé
-    await new Promise((resolve, reject) => {
-      const s = document.createElement("script");
-      s.src = "https://accounts.google.com/gsi/client";
-      s.async = true;
-      s.defer = true;
-      s.onload = resolve;
-      s.onerror = () => reject(new Error("Erreur de chargement Google Identity"));
-      document.head.appendChild(s);
-    });
-  }
-
-  async function startGoogleAuth(clientId) {
-    if (!clientId) {
-      // Mode dév : crée une session locale simulée (pas d’OAuth)
-      setSession({
-        provider: "local-dev",
-        signed_in: true,
-        at: Date.now()
-      });
-      showToast("Session locale créée (développement).");
-      return;
-    }
-
-    try {
-      await loadGoogleIdentity();
-
-      // Initialisation Google Identity (One Tap ou bouton)
-      if (window.google?.accounts?.id) {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (resp) => {
-            // Ici on ne valide pas le token côté serveur (pas de backend).
-            // On mémorise seulement que l’utilisateur est "signé" côté client.
-            setSession({
-              provider: "google",
-              credential_preview: Boolean(resp?.credential), // indicatif
-              signed_in: true,
-              at: Date.now()
-            });
-            showToast("Connecté via Google (client-side).");
-          }
-        });
-
-        // Afficher One Tap quand possible (optionnel)
-        try { window.google.accounts.id.prompt(); } catch {}
-
-        // Si tu ajoutes un bouton Google officiel, tu peux aussi le rendre ici:
-        // window.google.accounts.id.renderButton(btnGoogle, { theme: "outline", size: "medium" });
-      } else {
-        throw new Error("Google Identity non disponible");
-      }
-    } catch (e) {
-      console.error(e);
-      showToast("Impossible de charger Google. Session locale utilisée.");
-      setSession({
-        provider: "local-fallback",
-        signed_in: true,
-        at: Date.now()
-      });
-    }
-  }
-
-  // --- Bouton "Se connecter avec Google"
-  if (btnGoogle) {
-    btnGoogle.addEventListener("click", () => {
-      const clientId = btnGoogle.getAttribute("data-client-id") || "";
-      startGoogleAuth(clientId);
-    });
-  }
-
-  // --- Indication de session à l’arrivée sur la page
-  const currentSession = getSession();
-  if (currentSession?.signed_in) {
-    showToast(`Session active (${currentSession.provider}).`);
-  }
-
-  // --- Expose minimal debug (optionnel)
-  window.ATMOS = {
-    getSession,
-    setSession,
-    clearSession,
-    showToast
-  };
 })();
+
+async function signIn(provider, scopes){
+  try{
+    setAuthBusy(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: SITE_URL,            // revient ici après OAuth
+        scopes: scopes || 'openid email profile'
+        // (facultatif) queryParams: { prompt:'consent' }
+      }
+    });
+    if(error){
+      alert('Connexion impossible : ' + error.message);
+      setAuthBusy(false);
+    }
+  }catch(err){
+    alert('Erreur inattendue : ' + (err?.message || err));
+    setAuthBusy(false);
+  }
+}
+
+if (loginGoogleBtn) loginGoogleBtn.onclick = ()=> signIn('google', 'openid email profile');
+// Provider Microsoft côté Supabase = "azure"
+if (loginMsBtn)     loginMsBtn.onclick     = ()=> signIn('azure',  'openid email profile');
+
+if (logoutBtn) logoutBtn.onclick = async ()=>{
+  await supabase.auth.signOut();
+  show(null);
+};
+
+// Nettoie les paramètres OAuth (?code=...&state=...) une fois la session récupérée
+function cleanOAuthParams(){
+  const q = new URLSearchParams(location.search);
+  if(q.has('code') || q.has('state') || q.has('error_description')){
+    history.replaceState({}, document.title, SITE_URL);
+  }
+}
+
+// Redirection automatique vers la cible demandée (?r=...) dès qu'on a une session
+async function maybeRedirectToReturn(session){
+  if(!session) return;
+  const target = localStorage.getItem(RETURN_KEY);
+  if(target){
+    localStorage.removeItem(RETURN_KEY);
+    location.href = target;
+  }
+}
+
+// État initial + abonnement
+supabase.auth.getSession().then(({ data }) => {
+  show(data.session);
+  cleanOAuthParams();
+  maybeRedirectToReturn(data.session);
+});
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  show(session);
+  setAuthBusy(false);
+  cleanOAuthParams();
+  maybeRedirectToReturn(session);
+});
+
+if(location.protocol === 'file:'){
+  if (whoSpan) whoSpan.textContent = 'Ouvre via HTTPS (GitHub Pages, Netlify…) pour que la connexion fonctionne.';
+}
