@@ -9,18 +9,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="./styles.css?v=1">
-<script src="./scripts.js" defer></script>
+  <!-- ↑ augmente la version si besoin de forcer le rafraîchissement du cache -->
+  <link rel="stylesheet" href="./styles.css?v=2" />
 
-  <!-- Librairies avant notre script pour garantir leur dispo -->
+  <!-- Librairies AVANT notre script -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Notre logique (définit onGapiLoad avant le script Google) -->
-  <script src="./scripts.js"></script>
+  <!-- Notre logique (définit window.onGapiLoad) -->
+  <script defer src="./scripts.js"></script>
 
-  <!-- Google API (appelle la fonction globale onGapiLoad définie dans scripts.js) -->
-  <script src="https://apis.google.com/js/api.js?onload=onGapiLoad" async defer></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Google API (exécute onGapiLoad quand le script est prêt) -->
+  <!-- Utilise DEFER (pas async) pour respecter l'ordre avec scripts.js -->
+  <script defer src="https://apis.google.com/js/api.js?onload=onGapiLoad"></script>
+
+  <!-- Google Identity (aucune dépendance immédiate, peut rester async) -->
+  <script async defer src="https://accounts.google.com/gsi/client"></script>
 </head>
 
 <body class="auth-locked">
