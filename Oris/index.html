@@ -5,28 +5,31 @@
   <title>ORIS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Polices ATMOS -->
+  <!-- Polices -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet" />
 
-  <!-- Styles -->
-  <!-- ↑ augmente la version si besoin de forcer le rafraîchissement du cache -->
-  <link rel="stylesheet" href="./styles.css?v=2" />
+  <!-- Styles ORIS -->
+  <link rel="stylesheet" href="./styles.css?v=3" />
 
-  <!-- Librairies AVANT notre script -->
+  <!-- ⚠️ Overrides : on neutralise complètement le mode auth-locked -->
+  <style>
+    /* Même si une classe auth-locked est posée, on n’applique plus le blocage */
+    body.auth-locked .shell { pointer-events: auto !important; filter: none !important; }
+    #authBlock { display: none !important; }
+  </style>
+
+  <!-- Librairies AVANT notre logique -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Notre logique (définit window.onGapiLoad) -->
+  <!-- Notre logique (définit onGapiLoad, etc.) -->
   <script defer src="./scripts.js"></script>
 
-  <!-- Google API (exécute onGapiLoad quand le script est prêt) -->
-  <!-- Utilise DEFER (pas async) pour respecter l'ordre avec scripts.js -->
+  <!-- Google API (déclenche onGapiLoad une fois prêt) -->
   <script defer src="https://apis.google.com/js/api.js?onload=onGapiLoad"></script>
-
-  <!-- Google Identity (aucune dépendance immédiate, peut rester async) -->
   <script async defer src="https://accounts.google.com/gsi/client"></script>
 </head>
 
-<body class="auth-locked">
+<body>
   <div class="shell">
     <div class="main">
       <!-- TOPBAR -->
@@ -46,7 +49,7 @@
             <button class="viewBtn" data-view="day">Jour</button>
           </div>
 
-          <input id="searchInput" class="input" type="search" placeholder="Rechercher (titre, lieu…)" style="min-width:220px">
+          <input id="searchInput" class="input" type="search" placeholder="Rechercher (titre, lieu…)" style="min-width:220px" />
           <button id="searchBtn" class="btn small">Rechercher</button>
         </div>
       </div>
@@ -59,7 +62,7 @@
               <option value="">Tous les calendriers</option>
             </select>
             <button id="newEventBtn" class="btn small">+ Nouvel événement</button>
-            <span id="status" class="status">Connexion requise.</span>
+            <span id="status" class="status">—</span>
           </div>
           <div class="spacer"></div>
           <div class="bar">
@@ -72,7 +75,7 @@
       </div>
     </div>
 
-    <!-- RIGHT PANEL: Calendriers + Tâches (SPHAIRA) -->
+    <!-- PANNEAU DROITE -->
     <div class="right panel">
       <div class="panel-head">
         <strong style="font-family:Orbitron">ORIS — Panneau</strong>
@@ -94,7 +97,7 @@
     </div>
   </div>
 
-  <!-- EVENT EDITOR MODAL -->
+  <!-- MODALE ÉVÉNEMENT -->
   <div id="eventModal" class="modal" aria-hidden="true" role="dialog" aria-label="Édition événement">
     <div class="card">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:8px">
@@ -108,7 +111,7 @@
       <div class="row">
         <div>
           <label>Titre</label>
-          <input id="fTitle" placeholder="Titre">
+          <input id="fTitle" placeholder="Titre" />
         </div>
         <div>
           <label>Calendrier</label>
@@ -118,17 +121,17 @@
       <div class="row">
         <div>
           <label>Début</label>
-          <input id="fStart" type="datetime-local">
+          <input id="fStart" type="datetime-local" />
         </div>
         <div>
           <label>Fin</label>
-          <input id="fEnd" type="datetime-local">
+          <input id="fEnd" type="datetime-local" />
         </div>
       </div>
       <div class="row">
         <div>
           <label>Lieu</label>
-          <input id="fLocation" placeholder="Lieu">
+          <input id="fLocation" placeholder="Lieu" />
         </div>
         <div>
           <label>Visio (Meet)</label>
@@ -145,15 +148,23 @@
     </div>
   </div>
 
-  <!-- AUTH OVERLAY (SSO ATMOS) -->
-  <div id="authBlock" class="auth-block" aria-live="polite" role="alert">
-    <div class="auth-card">
-      <h3>Connexion nécessaire</h3>
-      <p>Connectez-vous sur <strong>ATMOS</strong> pour utiliser ORIS.</p>
-      <div class="actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-        <a id="authGoAtmos" class="btn">Se connecter sur ATMOS</a>
-      </div>
-    </div>
-  </div>
+  <!-- 🛡️ Sûreté : on force l’appli à rester déverrouillée -->
+  <script>
+    // Si ton scripts.js tente encore d’activer le verrou, on l’annule.
+    (function () {
+      // 1) No-op global si la fonction existe / est rappelée plus tard
+      try { window.setAuthLocked = function () { /* neutralisé */ }; } catch {}
+
+      // 2) Nettoyage immédiat et récurrent (au cas où un listener reposerait la classe)
+      function unlock() {
+        document.body.classList.remove('auth-locked');
+        var b = document.getElementById('authBlock'); if (b) b.remove();
+      }
+      document.addEventListener('DOMContentLoaded', unlock);
+      window.addEventListener('load', unlock);
+      setTimeout(unlock, 0);
+      setInterval(unlock, 1500); // sécurise contre tout re-verrouillage
+    })();
+  </script>
 </body>
 </html>
