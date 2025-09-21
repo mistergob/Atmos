@@ -1,13 +1,17 @@
 /* ====== ORIS — Auth & Google Calendar ====== */
 
 /** ——— Config projet ——— **/
+/* ====== ORIS - Auth & Google Calendar ====== */
+
+// -- Config projet --
 const PROJECT_REF = "jlfvbggzdkkwrmpsamvz";
 const SUPABASE_URL = `https://${PROJECT_REF}.supabase.co`;
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZnZiZ2d6ZGtrd3JtcHNhbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNjUyNjMsImV4cCI6MjA3Mjg0MTI2M30.kDbtNVQfHEVxRbA8jsAfLu7-6kDioTCG-nWVQ91gJIs`;
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZnZiZ2d6ZGtrd3JtcHNhbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNjUyNjMsImV4cCI6MjA3Mjg0MTI2M30.kDbtNVQfHEVxRbA8jsAfLu7-6kDioTCG-nWVQ91gJIs";
 const STORAGE_KEY = `sb-${PROJECT_REF}-auth-token`;
 const ATMOS_URL = "https://mistergob.github.io/Atmos/";
 const GOOGLE_CLIENT_ID = "514694919456-asuq6cm5rm048fum8tevs9cou7hq7dq0.apps.googleusercontent.com";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events";
+
 
 /** ——— Supabase (SSO ATMOS) ——— **/
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
