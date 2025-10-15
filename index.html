@@ -1,50 +1,3477 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ATMOS</title>
-  <meta name="color-scheme" content="dark light">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-
-  <!-- CSS externe -->
-  <link rel="stylesheet" href="./styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choix TVA et Affichage Dynamique</title>
+    <style>
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="aura" aria-hidden="true"></div>
-    <main>
-      <h1 class="title">ATMOS</h1>
-      <p class="subtitle">Tableau de bord — Portail principal de votre espace de travail.</p>
+    <form id="tvaForm">
+        <label for="assujetti">Assujetti à TVA :</label>
+        <select id="assujetti">
+            <option value="oui">Oui</option>
+            <option value="non">Non</option>
+        </select>
+        <br><br>
+        <label for="tvaTaux">TVA de l'Activité :</label>
+        <select id="tvaTaux">
+            <option value="20%">20%</option>
+            <option value="10%">10%</option>
+            <option value="5.5%">5,5%</option>
+        </select>
+    </form>
 
-      <div class="panel" role="group" aria-label="Navigation principale">
-        <!-- Auth -->
-        <div class="row">
-          <button class="cta" id="loginGoogle">Se connecter avec Google</button>
-          <button class="cta" id="loginMicrosoft">Se connecter avec Microsoft</button>
-          <button class="cta" id="logout" style="display:none">Se déconnecter</button>
-        </div>
-        <div class="small" id="who">Non connecté</div>
+    <div id="result" class="result">
+        Sélectionnez vos options pour afficher le résultat.
+    </div>
 
-        <!-- Liens modules -->
-        <a class="cta" href="./Sphaira/" target="_blank" rel="noopener noreferrer">
-          <span class="dot" aria-hidden="true"></span><span>Entrer dans SPHAIRA</span>
-        </a>
-        <a class="cta" href="./Oris/" target="_blank" rel="noopener noreferrer">
-          <span class="dot" aria-hidden="true"></span><span>Ouvrir ORIS — Agenda</span>
-        </a>
-        <a class="cta" href="./Nexus/" target="_blank" rel="noopener noreferrer">
-          <span class="dot" aria-hidden="true"></span><span>Ouvrir NEXUS — Mails</span>
-        </a>
+    <script>
+        const assujettiSelect = document.getElementById('assujetti');
+        const tvaTauxSelect = document.getElementById('tvaTaux');
+        const resultDiv = document.getElementById('result');
+
+        function updateResult() {
+            const assujetti = assujettiSelect.value;
+            const tvaTaux = tvaTauxSelect.value;
+
+            if (assujetti === 'non' && tvaTaux === '20%') {
+                resultDiv.innerHTML = `<p><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau Comparatif des coopératives</title>
+  <style>
+  /* Affichage téléphone */
+  @media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .wide-column {
+    width: auto;
+  }
+}
+    .services-table-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      margin-bottom: -10px
+    }
+
+    th, td {
+       border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    th {
+      background-color: #f4f4f4 !important;
+        cursor: pointer;
+        color: black !important;
+        font-size: 20px;
+    }
+/*Ce sont les textes de la première colonne */
+    .services-icon {
+      font-size: 20px;
+      color: black ;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .services-title {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .services-tooltip-container {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      color:green;
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .services-tooltip {
+      visibility: hidden;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 10px;
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      width: 250px;
+
+    }
+
+    .services-tooltip-container:hover .services-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+        tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+     .green-check {
+        color: green;
+        font-weight: bold;
+    }
+    .gray-check {
+        color: gray;
+        font-weight: bold;
+        
+    }
+    .wide-column {
+  width: 20%; /* Ajustez le pourcentage selon vos besoins */
+}
+.orange-text {
+  color: orange !important;
+}
+    td:not(:first-child), th:not(:first-child) {
+        text-align: center; /* Centre le contenu sauf pour la première colonne */
+}
+.logo-img {
+    width: 300px; /* ou toute largeur souhaitée */
+  height: auto; /* pour conserver les proportions */
+  max-width: 100%; /* pour éviter que l'image dépasse le conteneur */
+}
+.badge {
+    width:100%;
+    max-width:100%;
+    height:auto ;
+}
+  .services-tooltip-container-wrapper {
+    display: flex;
+    align-items: center; /* Aligner les images verticalement */
+    gap: 0px; /* Espacement entre les images */
+    justify-content: center;
+  }
+  .services-tooltip-container {
+    display: flex;
+    flex-direction: column;
+    align-items: left; /* Centrer l'image et l'infobulle */
+  }
+  .services-tooltip {
+    margin-top: 10px; /* Espacement entre l'image et l'infobulle */
+    text-align: center; /* Centrer le texte */
+    font-size: 0.9rem; /* Taille du texte de l'infobulle */
+  }
+  .services-tooltip-container img {
+    width: 50px; /* Largeur personnalisée des images */
+    height: auto; /* Préserver les proportions */
+  }
+  </style>
+</head>
+<body>
+  <div class="services-table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Services</th>
+          <th> Offre 1</th>
+          <th class="wide-column"><img src="https://www.comingaia.fr/build/images/logo/logo-header.png" alt="COMINGAIA" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://easy-sap.fr/img/logo-1691349712.jpg" alt="EASY SAP" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://unipros.coop/wp-content/uploads/2023/03/unipros-cooperative-sap-logo-fond-clair.png" alt="UNIPROS" class="logo-img"></th>
+          
+          <th>Offre 5</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">
+                  
+              </span>
+            </div>
+          </td>
+          <td class="gray-check"></td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/90.jpg" 
+           alt="coopérative SAP spécialiste des jardiniers paysagiste" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Exclusive et dédiée aux Jardiniers & Paysagistes
       </div>
-    </main>
-  </div>
+    </div>
 
-  <!-- Supabase JS (chargé avant notre script) -->
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- JS externe -->
-  <script defer src="./scripts.js"></script>
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td>
+            <div class="gray-check"></div>
+          </td>
+        </tr>
+          
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Standard Téléphonique</span>
+              <div class="services-tooltip">
+                Lundi au Vendredi <br>
+              </div>
+            </div>
+          </td>
+          <td class="gray-check">✔</td>
+          <td>
+            <div class="services-tooltip-container"> 9h - 20h
+              <div class="services-tooltip">
+                Ouvert le samedi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 9H30 - 12H30 <br> 13H30 - 16H30
+              <div class="services-tooltip">
+                Fermé le Mercredi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 8H - 20H</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Attestations Fiscales envoi postal</span>
+              <div class="services-tooltip">
+                Ce service inclut l'envoi postal des attestations fiscales, avec des frais supplémentaires possibles selon l'option choisie.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (*)</span>
+              <div class="services-tooltip">
+                Frais supplémentaires pour les envois postaux<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Apport de clients</span>
+              <div class="services-tooltip">
+                La coopérative met en place des outils ou services qui vous permettront d'acquérir de nouveaux clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+           <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (+4%)</span>
+              <div class="services-tooltip">
+                Une commission supplémentaire de 4% est appliquée aux factures des clients apportés<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Espace en ligne</span>
+              <div class="services-tooltip">
+                Un espace dédié pour vous et vos clients ; Devis, Factures etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+         <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Relance des factures impayées</span>
+              <div class="services-tooltip">
+                La coopérative s'occupe pour vous de relancer vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide au recouvrement des créances</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service pour vous permettre de récupérer les sommes dues par vos clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+<td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Service Juridique</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service de conseil juridique, interne ou externe à celle-ci.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide/Outils de communication</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition des outils pour vous aider à obtenir de nouveaux clients ; Flyers, Etiquettes etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Délai de rétribution (en jours) </span>
+              <div class="services-tooltip">
+                Hors avance immédiate. C'est le temps que la coopérative met pour vous reverser les paiements de vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Commission </span>
+              <div class="services-tooltip">
+                A ajouter à vos devis dans le cadre des services à la personne. C'est la part qui rémunère la coopérative. Elle est généralement ajoutée à la facture des clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">8%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="gray-check">12%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">TVA </span>
+              <div class="services-tooltip">
+                Le montant de TVA dépend de l'activité proposée.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">20%</div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Frais Fixes (TTC) </span>
+              <div class="services-tooltip">
+                Les frais fixes sont des frais qui rémunèrent la coopérative
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">47,99 € / mois</div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+
 </body>
 </html>
+      </p>`;
+            } else if (assujetti === 'non' && tvaTaux === '10%') {
+                resultDiv.innerHTML = `<p><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau Comparatif des coopératives</title>
+  <style>
+  /* Affichage téléphone */
+  @media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .wide-column {
+    width: auto;
+  }
+}
+    .services-table-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
 
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      margin-bottom: -10px
+    }
 
+    th, td {
+       border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    th {
+      background-color: #f4f4f4 !important;
+        cursor: pointer;
+        color: black !important;
+        font-size: 20px;
+    }
+/*Ce sont les textes de la première colonne */
+    .services-icon {
+      font-size: 20px;
+      color: black ;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .services-title {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .services-tooltip-container {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      color:green;
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .services-tooltip {
+      visibility: hidden;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 10px;
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      width: 250px;
+
+    }
+
+    .services-tooltip-container:hover .services-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+        tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+     .green-check {
+        color: green;
+        font-weight: bold;
+    }
+    .gray-check {
+        color: gray;
+        font-weight: bold;
+        
+    }
+    .wide-column {
+  width: 20%; /* Ajustez le pourcentage selon vos besoins */
+}
+.orange-text {
+  color: orange !important;
+}
+    td:not(:first-child), th:not(:first-child) {
+        text-align: center; /* Centre le contenu sauf pour la première colonne */
+}
+.logo-img {
+    width: 300px; /* ou toute largeur souhaitée */
+  height: auto; /* pour conserver les proportions */
+  max-width: 100%; /* pour éviter que l'image dépasse le conteneur */
+}
+.badge {
+    width:100%;
+    max-width:100%;
+    height:auto ;
+}
+  .services-tooltip-container-wrapper {
+    display: flex;
+    align-items: center; /* Aligner les images verticalement */
+    gap: 0px; /* Espacement entre les images */
+    justify-content: center;
+  }
+  .services-tooltip-container {
+    display: flex;
+    flex-direction: column;
+    align-items: left; /* Centrer l'image et l'infobulle */
+  }
+  .services-tooltip {
+    margin-top: 10px; /* Espacement entre l'image et l'infobulle */
+    text-align: center; /* Centrer le texte */
+    font-size: 0.9rem; /* Taille du texte de l'infobulle */
+  }
+  .services-tooltip-container img {
+    width: 50px; /* Largeur personnalisée des images */
+    height: auto; /* Préserver les proportions */
+  }
+  </style>
+</head>
+<body>
+  <div class="services-table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Services</th>
+          <th> Offre 1</th>
+          <th class="wide-column"><img src="https://www.comingaia.fr/build/images/logo/logo-header.png" alt="COMINGAIA" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://easy-sap.fr/img/logo-1691349712.jpg" alt="EASY SAP" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://unipros.coop/wp-content/uploads/2023/03/unipros-cooperative-sap-logo-fond-clair.png" alt="UNIPROS" class="logo-img"></th>
+          
+          <th>Offre 5</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">
+                  
+              </span>
+            </div>
+          </td>
+          <td class="gray-check"></td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/90.jpg" 
+           alt="coopérative SAP spécialiste des jardiniers paysagiste" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Exclusive et dédiée aux Jardiniers & Paysagistes
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td>
+            <div class="gray-check"></div>
+          </td>
+        </tr>
+          
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Standard Téléphonique</span>
+              <div class="services-tooltip">
+                Lundi au Vendredi <br>
+              </div>
+            </div>
+          </td>
+          <td class="gray-check">✔</td>
+          <td>
+            <div class="services-tooltip-container"> 9h - 20h
+              <div class="services-tooltip">
+                Ouvert le samedi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 9H30 - 12H30 <br> 13H30 - 16H30
+              <div class="services-tooltip">
+                Fermé le Mercredi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 8H - 20H</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Attestations Fiscales envoi postal</span>
+              <div class="services-tooltip">
+                Ce service inclut l'envoi postal des attestations fiscales, avec des frais supplémentaires possibles selon l'option choisie.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (*)</span>
+              <div class="services-tooltip">
+                Frais supplémentaires pour les envois postaux<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Apport de clients</span>
+              <div class="services-tooltip">
+                La coopérative met en place des outils ou services qui vous permettront d'acquérir de nouveaux clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+           <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (+4%)</span>
+              <div class="services-tooltip">
+                Une commission supplémentaire de 4% est appliquée aux factures des clients apportés<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Espace en ligne</span>
+              <div class="services-tooltip">
+                Un espace dédié pour vous et vos clients ; Devis, Factures etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+         <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Relance des factures impayées</span>
+              <div class="services-tooltip">
+                La coopérative s'occupe pour vous de relancer vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide au recouvrement des créances</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service pour vous permettre de récupérer les sommes dues par vos clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+<td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Service Juridique</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service de conseil juridique, interne ou externe à celle-ci.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide/Outils de communication</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition des outils pour vous aider à obtenir de nouveaux clients ; Flyers, Etiquettes etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Délai de rétribution (en jours) </span>
+              <div class="services-tooltip">
+                Hors avance immédiate. C'est le temps que la coopérative met pour vous reverser les paiements de vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Commission </span>
+              <div class="services-tooltip">
+                A ajouter à vos devis dans le cadre des services à la personne. C'est la part qui rémunère la coopérative. Elle est généralement ajoutée à la facture des clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">8%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="gray-check">12%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">TVA </span>
+              <div class="services-tooltip">
+                Le montant de TVA dépend de l'activité proposée.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">10%</div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Frais Fixes (TTC) </span>
+              <div class="services-tooltip">
+                Les frais fixes sont des frais qui rémunèrent la coopérative
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">47,99 € / mois</div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+
+</body>
+</html>
+      </p>`;
+            } else if (assujetti === 'non' && tvaTaux === '5.5%') {
+                resultDiv.innerHTML = `<p><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau Comparatif des coopératives</title>
+  <style>
+  /* Affichage téléphone */
+  @media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .wide-column {
+    width: auto;
+  }
+}
+    .services-table-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      margin-bottom: -10px
+    }
+
+    th, td {
+       border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    th {
+      background-color: #f4f4f4 !important;
+        cursor: pointer;
+        color: black !important;
+        font-size: 20px;
+    }
+/*Ce sont les textes de la première colonne */
+    .services-icon {
+      font-size: 20px;
+      color: black ;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .services-title {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .services-tooltip-container {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      color:green;
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .services-tooltip {
+      visibility: hidden;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 10px;
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      width: 250px;
+
+    }
+
+    .services-tooltip-container:hover .services-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+        tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+     .green-check {
+        color: green;
+        font-weight: bold;
+    }
+    .gray-check {
+        color: gray;
+        font-weight: bold;
+        
+    }
+    .wide-column {
+  width: 20%; /* Ajustez le pourcentage selon vos besoins */
+}
+.orange-text {
+  color: orange !important;
+}
+    td:not(:first-child), th:not(:first-child) {
+        text-align: center; /* Centre le contenu sauf pour la première colonne */
+}
+.logo-img {
+    width: 300px; /* ou toute largeur souhaitée */
+  height: auto; /* pour conserver les proportions */
+  max-width: 100%; /* pour éviter que l'image dépasse le conteneur */
+}
+.badge {
+    width:100%;
+    max-width:100%;
+    height:auto ;
+}
+  .services-tooltip-container-wrapper {
+    display: flex;
+    align-items: center; /* Aligner les images verticalement */
+    gap: 0px; /* Espacement entre les images */
+    justify-content: center;
+  }
+  .services-tooltip-container {
+    display: flex;
+    flex-direction: column;
+    align-items: left; /* Centrer l'image et l'infobulle */
+  }
+  .services-tooltip {
+    margin-top: 10px; /* Espacement entre l'image et l'infobulle */
+    text-align: center; /* Centrer le texte */
+    font-size: 0.9rem; /* Taille du texte de l'infobulle */
+  }
+  .services-tooltip-container img {
+    width: 50px; /* Largeur personnalisée des images */
+    height: auto; /* Préserver les proportions */
+  }
+  </style>
+</head>
+<body>
+  <div class="services-table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Services</th>
+          <th> Offre 1</th>
+          <th class="wide-column"><img src="https://www.comingaia.fr/build/images/logo/logo-header.png" alt="COMINGAIA" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://easy-sap.fr/img/logo-1691349712.jpg" alt="EASY SAP" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://unipros.coop/wp-content/uploads/2023/03/unipros-cooperative-sap-logo-fond-clair.png" alt="UNIPROS" class="logo-img"></th>
+          
+          <th>Offre 5</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">
+                  
+              </span>
+            </div>
+          </td>
+          <td class="gray-check"></td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/90.jpg" 
+           alt="coopérative SAP spécialiste des jardiniers paysagiste" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Exclusive et dédiée aux Jardiniers & Paysagistes
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td>
+            <div class="gray-check"></div>
+          </td>
+        </tr>
+          
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Standard Téléphonique</span>
+              <div class="services-tooltip">
+                Lundi au Vendredi <br>
+              </div>
+            </div>
+          </td>
+          <td class="gray-check">✔</td>
+          <td>
+            <div class="services-tooltip-container"> 9h - 20h
+              <div class="services-tooltip">
+                Ouvert le samedi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 9H30 - 12H30 <br> 13H30 - 16H30
+              <div class="services-tooltip">
+                Fermé le Mercredi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 8H - 20H</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Attestations Fiscales envoi postal</span>
+              <div class="services-tooltip">
+                Ce service inclut l'envoi postal des attestations fiscales, avec des frais supplémentaires possibles selon l'option choisie.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (*)</span>
+              <div class="services-tooltip">
+                Frais supplémentaires pour les envois postaux<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Apport de clients</span>
+              <div class="services-tooltip">
+                La coopérative met en place des outils ou services qui vous permettront d'acquérir de nouveaux clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+           <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (+4%)</span>
+              <div class="services-tooltip">
+                Une commission supplémentaire de 4% est appliquée aux factures des clients apportés<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Espace en ligne</span>
+              <div class="services-tooltip">
+                Un espace dédié pour vous et vos clients ; Devis, Factures etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+         <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Relance des factures impayées</span>
+              <div class="services-tooltip">
+                La coopérative s'occupe pour vous de relancer vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide au recouvrement des créances</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service pour vous permettre de récupérer les sommes dues par vos clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+<td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Service Juridique</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service de conseil juridique, interne ou externe à celle-ci.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide/Outils de communication</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition des outils pour vous aider à obtenir de nouveaux clients ; Flyers, Etiquettes etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Délai de rétribution (en jours) </span>
+              <div class="services-tooltip">
+                Hors avance immédiate. C'est le temps que la coopérative met pour vous reverser les paiements de vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Commission </span>
+              <div class="services-tooltip">
+                A ajouter à vos devis dans le cadre des services à la personne. C'est la part qui rémunère la coopérative. Elle est généralement ajoutée à la facture des clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">8%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="gray-check">12%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">TVA </span>
+              <div class="services-tooltip">
+                Le montant de TVA dépend de l'activité proposée.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">5,5%</div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Frais Fixes (TTC) </span>
+              <div class="services-tooltip">
+                Les frais fixes sont des frais qui rémunèrent la coopérative
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">47,99 € / mois</div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+
+</body>
+</html>
+      </p>`;
+            } else if (assujetti === 'oui' && tvaTaux === '20%') {
+                resultDiv.innerHTML = `<p><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau Comparatif des coopératives</title>
+  <style>
+  /* Affichage téléphone */
+  @media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .wide-column {
+    width: auto;
+  }
+}
+    .services-table-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      margin-bottom: -10px
+    }
+
+    th, td {
+       border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    th {
+      background-color: #f4f4f4 !important;
+        cursor: pointer;
+        color: black !important;
+        font-size: 20px;
+    }
+/*Ce sont les textes de la première colonne */
+    .services-icon {
+      font-size: 20px;
+      color: black ;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .services-title {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .services-tooltip-container {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      color:green;
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .services-tooltip {
+      visibility: hidden;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 10px;
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      width: 250px;
+
+    }
+
+    .services-tooltip-container:hover .services-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+        tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+     .green-check {
+        color: green;
+        font-weight: bold;
+    }
+    .gray-check {
+        color: gray;
+        font-weight: bold;
+        
+    }
+    .wide-column {
+  width: 20%; /* Ajustez le pourcentage selon vos besoins */
+}
+.orange-text {
+  color: orange !important;
+}
+    td:not(:first-child), th:not(:first-child) {
+        text-align: center; /* Centre le contenu sauf pour la première colonne */
+}
+.logo-img {
+    width: 300px; /* ou toute largeur souhaitée */
+  height: auto; /* pour conserver les proportions */
+  max-width: 100%; /* pour éviter que l'image dépasse le conteneur */
+}
+.badge {
+    width:100%;
+    max-width:100%;
+    height:auto ;
+}
+  .services-tooltip-container-wrapper {
+    display: flex;
+    align-items: center; /* Aligner les images verticalement */
+    gap: 0px; /* Espacement entre les images */
+    justify-content: center;
+  }
+  .services-tooltip-container {
+    display: flex;
+    flex-direction: column;
+    align-items: left; /* Centrer l'image et l'infobulle */
+  }
+  .services-tooltip {
+    margin-top: 10px; /* Espacement entre l'image et l'infobulle */
+    text-align: center; /* Centrer le texte */
+    font-size: 0.9rem; /* Taille du texte de l'infobulle */
+  }
+  .services-tooltip-container img {
+    width: 50px; /* Largeur personnalisée des images */
+    height: auto; /* Préserver les proportions */
+  }
+  </style>
+</head>
+<body>
+  <div class="services-table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Services</th>
+          <th> Offre 1</th>
+          <th class="wide-column"><img src="https://www.comingaia.fr/build/images/logo/logo-header.png" alt="COMINGAIA" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://easy-sap.fr/img/logo-1691349712.jpg" alt="EASY SAP" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://unipros.coop/wp-content/uploads/2023/03/unipros-cooperative-sap-logo-fond-clair.png" alt="UNIPROS" class="logo-img"></th>
+          
+          <th>Offre 5</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">
+                  
+              </span>
+            </div>
+          </td>
+          <td class="gray-check"></td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/90.jpg" 
+           alt="coopérative SAP spécialiste des jardiniers paysagiste" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Exclusive et dédiée aux Jardiniers & Paysagistes
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td>
+            <div class="gray-check"></div>
+          </td>
+        </tr>
+          
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Standard Téléphonique</span>
+              <div class="services-tooltip">
+                Lundi au Vendredi <br>
+              </div>
+            </div>
+          </td>
+          <td class="gray-check">✔</td>
+          <td>
+            <div class="services-tooltip-container"> 9h - 20h
+              <div class="services-tooltip">
+                Ouvert le samedi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 9H30 - 12H30 <br> 13H30 - 16H30
+              <div class="services-tooltip">
+                Fermé le Mercredi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 8H - 20H</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Attestations Fiscales envoi postal</span>
+              <div class="services-tooltip">
+                Ce service inclut l'envoi postal des attestations fiscales, avec des frais supplémentaires possibles selon l'option choisie.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (*)</span>
+              <div class="services-tooltip">
+                Frais supplémentaires pour les envois postaux<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Apport de clients</span>
+              <div class="services-tooltip">
+                La coopérative met en place des outils ou services qui vous permettront d'acquérir de nouveaux clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+           <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (+4%)</span>
+              <div class="services-tooltip">
+                Une commission supplémentaire de 4% est appliquée aux factures des clients apportés<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Espace en ligne</span>
+              <div class="services-tooltip">
+                Un espace dédié pour vous et vos clients ; Devis, Factures etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+         <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Relance des factures impayées</span>
+              <div class="services-tooltip">
+                La coopérative s'occupe pour vous de relancer vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide au recouvrement des créances</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service pour vous permettre de récupérer les sommes dues par vos clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+<td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Service Juridique</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service de conseil juridique, interne ou externe à celle-ci.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide/Outils de communication</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition des outils pour vous aider à obtenir de nouveaux clients ; Flyers, Etiquettes etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Délai de rétribution (en jours) </span>
+              <div class="services-tooltip">
+                Hors avance immédiate. C'est le temps que la coopérative met pour vous reverser les paiements de vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Commission </span>
+              <div class="services-tooltip">
+                A ajouter à vos devis dans le cadre des services à la personne. C'est la part qui rémunère la coopérative. Elle est généralement ajoutée à la facture des clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">8%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="gray-check">12%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">TVA </span>
+              <div class="services-tooltip">
+                Le montant de TVA dépend de l'activité proposée.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">20%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">20%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">20%</div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Frais Fixes (TTC) </span>
+              <div class="services-tooltip">
+                Les frais fixes sont des frais qui rémunèrent la coopérative
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">47,99 € / mois</div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+
+</body>
+</html>
+      </p>`;
+            } else if (assujetti === 'oui' && tvaTaux === '10%') {
+                resultDiv.innerHTML = `<p><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau Comparatif des coopératives</title>
+  <style>
+  /* Affichage téléphone */
+  @media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .wide-column {
+    width: auto;
+  }
+}
+    .services-table-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      margin-bottom: -10px
+    }
+
+    th, td {
+       border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    th {
+      background-color: #f4f4f4 !important;
+        cursor: pointer;
+        color: black !important;
+        font-size: 20px;
+    }
+/*Ce sont les textes de la première colonne */
+    .services-icon {
+      font-size: 20px;
+      color: black ;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .services-title {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .services-tooltip-container {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      color:green;
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .services-tooltip {
+      visibility: hidden;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 10px;
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      width: 250px;
+
+    }
+
+    .services-tooltip-container:hover .services-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+        tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+     .green-check {
+        color: green;
+        font-weight: bold;
+    }
+    .gray-check {
+        color: gray;
+        font-weight: bold;
+        
+    }
+    .wide-column {
+  width: 20%; /* Ajustez le pourcentage selon vos besoins */
+}
+.orange-text {
+  color: orange !important;
+}
+    td:not(:first-child), th:not(:first-child) {
+        text-align: center; /* Centre le contenu sauf pour la première colonne */
+}
+.logo-img {
+    width: 300px; /* ou toute largeur souhaitée */
+  height: auto; /* pour conserver les proportions */
+  max-width: 100%; /* pour éviter que l'image dépasse le conteneur */
+}
+.badge {
+    width:100%;
+    max-width:100%;
+    height:auto ;
+}
+  .services-tooltip-container-wrapper {
+    display: flex;
+    align-items: center; /* Aligner les images verticalement */
+    gap: 0px; /* Espacement entre les images */
+    justify-content: center;
+  }
+  .services-tooltip-container {
+    display: flex;
+    flex-direction: column;
+    align-items: left; /* Centrer l'image et l'infobulle */
+  }
+  .services-tooltip {
+    margin-top: 10px; /* Espacement entre l'image et l'infobulle */
+    text-align: center; /* Centrer le texte */
+    font-size: 0.9rem; /* Taille du texte de l'infobulle */
+  }
+  .services-tooltip-container img {
+    width: 50px; /* Largeur personnalisée des images */
+    height: auto; /* Préserver les proportions */
+  }
+  </style>
+</head>
+<body>
+  <div class="services-table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Services</th>
+          <th> Offre 1</th>
+          <th class="wide-column"><img src="https://www.comingaia.fr/build/images/logo/logo-header.png" alt="COMINGAIA" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://easy-sap.fr/img/logo-1691349712.jpg" alt="EASY SAP" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://unipros.coop/wp-content/uploads/2023/03/unipros-cooperative-sap-logo-fond-clair.png" alt="UNIPROS" class="logo-img"></th>
+          
+          <th>Offre 5</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">
+                  
+              </span>
+            </div>
+          </td>
+          <td class="gray-check"></td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/90.jpg" 
+           alt="coopérative SAP spécialiste des jardiniers paysagiste" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Exclusive et dédiée aux Jardiniers & Paysagistes
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td>
+            <div class="gray-check"></div>
+          </td>
+        </tr>
+          
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Standard Téléphonique</span>
+              <div class="services-tooltip">
+                Lundi au Vendredi <br>
+              </div>
+            </div>
+          </td>
+          <td class="gray-check">✔</td>
+          <td>
+            <div class="services-tooltip-container"> 9h - 20h
+              <div class="services-tooltip">
+                Ouvert le samedi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 9H30 - 12H30 <br> 13H30 - 16H30
+              <div class="services-tooltip">
+                Fermé le Mercredi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 8H - 20H</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Attestations Fiscales envoi postal</span>
+              <div class="services-tooltip">
+                Ce service inclut l'envoi postal des attestations fiscales, avec des frais supplémentaires possibles selon l'option choisie.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (*)</span>
+              <div class="services-tooltip">
+                Frais supplémentaires pour les envois postaux<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Apport de clients</span>
+              <div class="services-tooltip">
+                La coopérative met en place des outils ou services qui vous permettront d'acquérir de nouveaux clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+           <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (+4%)</span>
+              <div class="services-tooltip">
+                Une commission supplémentaire de 4% est appliquée aux factures des clients apportés<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Espace en ligne</span>
+              <div class="services-tooltip">
+                Un espace dédié pour vous et vos clients ; Devis, Factures etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+         <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Relance des factures impayées</span>
+              <div class="services-tooltip">
+                La coopérative s'occupe pour vous de relancer vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide au recouvrement des créances</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service pour vous permettre de récupérer les sommes dues par vos clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+<td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Service Juridique</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service de conseil juridique, interne ou externe à celle-ci.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide/Outils de communication</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition des outils pour vous aider à obtenir de nouveaux clients ; Flyers, Etiquettes etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Délai de rétribution (en jours) </span>
+              <div class="services-tooltip">
+                Hors avance immédiate. C'est le temps que la coopérative met pour vous reverser les paiements de vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Commission </span>
+              <div class="services-tooltip">
+                A ajouter à vos devis dans le cadre des services à la personne. C'est la part qui rémunère la coopérative. Elle est généralement ajoutée à la facture des clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">5%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">8%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="gray-check">12%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">TVA </span>
+              <div class="services-tooltip">
+                Le montant de TVA dépend de l'activité proposée.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">10%</div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Frais Fixes (TTC) </span>
+              <div class="services-tooltip">
+                Les frais fixes sont des frais qui rémunèrent la coopérative
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">47,99 € / mois</div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+
+</body>
+</html>
+      </p>`;
+            } else if (assujetti === 'oui' && tvaTaux === '5.5%') {
+                resultDiv.innerHTML = `<p><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau Comparatif des coopératives</title>
+  <style>
+  /* Affichage téléphone */
+  @media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .wide-column {
+    width: auto;
+  }
+}
+    .services-table-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      margin-bottom: -10px
+    }
+
+    th, td {
+       border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    th {
+      background-color: #f4f4f4 !important;
+        cursor: pointer;
+        color: black !important;
+        font-size: 20px;
+    }
+/*Ce sont les textes de la première colonne */
+    .services-icon {
+      font-size: 20px;
+      color: black ;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .services-title {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .services-tooltip-container {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      color:green;
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .services-tooltip {
+      visibility: hidden;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 10px;
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      width: 250px;
+
+    }
+
+    .services-tooltip-container:hover .services-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+        tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+     .green-check {
+        color: green;
+        font-weight: bold;
+    }
+    .gray-check {
+        color: gray;
+        font-weight: bold;
+        
+    }
+    .wide-column {
+  width: 20%; /* Ajustez le pourcentage selon vos besoins */
+}
+.orange-text {
+  color: orange !important;
+}
+    td:not(:first-child), th:not(:first-child) {
+        text-align: center; /* Centre le contenu sauf pour la première colonne */
+}
+.logo-img {
+    width: 300px; /* ou toute largeur souhaitée */
+  height: auto; /* pour conserver les proportions */
+  max-width: 100%; /* pour éviter que l'image dépasse le conteneur */
+}
+.badge {
+    width:100%;
+    max-width:100%;
+    height:auto ;
+}
+  .services-tooltip-container-wrapper {
+    display: flex;
+    align-items: center; /* Aligner les images verticalement */
+    gap: 0px; /* Espacement entre les images */
+    justify-content: center;
+  }
+  .services-tooltip-container {
+    display: flex;
+    flex-direction: column;
+    align-items: left; /* Centrer l'image et l'infobulle */
+  }
+  .services-tooltip {
+    margin-top: 10px; /* Espacement entre l'image et l'infobulle */
+    text-align: center; /* Centrer le texte */
+    font-size: 0.9rem; /* Taille du texte de l'infobulle */
+  }
+  .services-tooltip-container img {
+    width: 50px; /* Largeur personnalisée des images */
+    height: auto; /* Préserver les proportions */
+  }
+  </style>
+</head>
+<body>
+  <div class="services-table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Services</th>
+          <th> Offre 1</th>
+          <th class="wide-column"><img src="https://www.comingaia.fr/build/images/logo/logo-header.png" alt="COMINGAIA" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://easy-sap.fr/img/logo-1691349712.jpg" alt="EASY SAP" class="logo-img"></th>
+          
+          <th class="wide-column"><img src="https://unipros.coop/wp-content/uploads/2023/03/unipros-cooperative-sap-logo-fond-clair.png" alt="UNIPROS" class="logo-img"></th>
+          
+          <th>Offre 5</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">
+                  
+              </span>
+            </div>
+          </td>
+          <td class="gray-check"></td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/90.jpg" 
+           alt="coopérative SAP spécialiste des jardiniers paysagiste" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Exclusive et dédiée aux Jardiniers & Paysagistes
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td class="wide-column">
+  <div class="services-tooltip-container-wrapper">
+    <!-- Première image avec sa propre infobulle -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/93.jpg" alt="Crédit d'impôt professionnel" 
+           class="wide-column">
+      <div class="services-tooltip">
+        -25% de crédit d'impôt SAP pour les entreprises
+      </div>
+    </div>
+
+    <!-- Deuxième image avec une infobulle différente -->
+    <div class="services-tooltip-container">
+      <img src="https://sapconseils.fr/wp-content/uploads/94.jpg" 
+           alt="Avance Immédiate au crédit d'impôt" 
+           class="wide-column">
+      <div class="services-tooltip">
+        Vos clients règlent 50% du montant de la facture !
+      </div>
+    </div>
+  </div>
+</td>
+          <td>
+            <div class="gray-check"></div>
+          </td>
+        </tr>
+          
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Standard Téléphonique</span>
+              <div class="services-tooltip">
+                Lundi au Vendredi <br>
+              </div>
+            </div>
+          </td>
+          <td class="gray-check">✔</td>
+          <td>
+            <div class="services-tooltip-container"> 9h - 20h
+              <div class="services-tooltip">
+                Ouvert le samedi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 9H30 - 12H30 <br> 13H30 - 16H30
+              <div class="services-tooltip">
+                Fermé le Mercredi<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container"> 8H - 20H</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Attestations Fiscales envoi postal</span>
+              <div class="services-tooltip">
+                Ce service inclut l'envoi postal des attestations fiscales, avec des frais supplémentaires possibles selon l'option choisie.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (*)</span>
+              <div class="services-tooltip">
+                Frais supplémentaires pour les envois postaux<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Apport de clients</span>
+              <div class="services-tooltip">
+                La coopérative met en place des outils ou services qui vous permettront d'acquérir de nouveaux clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+           <td>
+            <div class="services-tooltip-container">
+              ✔ <span class="orange-text"> (+4%)</span>
+              <div class="services-tooltip">
+                Une commission supplémentaire de 4% est appliquée aux factures des clients apportés<br>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Espace en ligne</span>
+              <div class="services-tooltip">
+                Un espace dédié pour vous et vos clients ; Devis, Factures etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+         <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Relance des factures impayées</span>
+              <div class="services-tooltip">
+                La coopérative s'occupe pour vous de relancer vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide au recouvrement des créances</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service pour vous permettre de récupérer les sommes dues par vos clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+<td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Service Juridique</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition un service de conseil juridique, interne ou externe à celle-ci.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Aide/Outils de communication</span>
+              <div class="services-tooltip">
+                La coopérative met à votre disposition des outils pour vous aider à obtenir de nouveaux clients ; Flyers, Etiquettes etc...
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">✔</div>
+          </td>
+          <td>
+            <div class="gray-check">✔</div>
+          </td>
+        </tr>
+        
+        
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Délai de rétribution (en jours) </span>
+              <div class="services-tooltip">
+                Hors avance immédiate. C'est le temps que la coopérative met pour vous reverser les paiements de vos clients
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">2</div>
+          </td>
+          <td>
+            <div class="gray-check">-</div>
+          </td>
+        </tr>
+        
+        <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Commission </span>
+              <div class="services-tooltip">
+                A ajouter à vos devis dans le cadre des services à la personne. C'est la part qui rémunère la coopérative. Elle est généralement ajoutée à la facture des clients.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">5%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">8%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">10%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">0%</div>
+          </td>
+          <td>
+            <div class="gray-check">12%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">TVA </span>
+              <div class="services-tooltip">
+                Le montant de TVA dépend de l'activité proposée.
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">5,5%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">5,5%</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">5,5%</div>
+          </td>
+          <td>
+            <div class="gray-check">20%</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="services-tooltip-container">
+              <span class="services-icon">Frais Fixes (TTC) </span>
+              <div class="services-tooltip">
+                Les frais fixes sont des frais qui rémunèrent la coopérative
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">-</div>
+          </td>
+          <td>
+            <div class="services-tooltip-container">47,99 € / mois</div>
+          </td>
+          <td>
+            <div class="gray-check">50€ / an</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+
+</body>
+</html></p>`;
+            } else {
+                resultDiv.innerHTML = `<p>Aucun résultat disponible pour ces choix.</p>`;
+            }
+        }
+
+        // Ajouter des écouteurs pour détecter les changements
+        assujettiSelect.addEventListener('change', updateResult);
+        tvaTauxSelect.addEventListener('change', updateResult);
+
+updateResult();
+
+    </script>
+</body>
+</html>
